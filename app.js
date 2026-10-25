@@ -151,7 +151,7 @@
     stopBootLog();
     bootOverlay.classList.add("hidden");
     bootOverlay.classList.remove("show", "blackout");
-    bootApple.src = "./icons/user-boot-logo.png";
+    bootApple.src = "./icons/apple.svg";
     doneOverlay.classList.add("hidden");
     logEl.innerHTML = "";
     fill.style.width = "0%";
@@ -199,11 +199,14 @@
   async function runBoot() {
     consoleOverlay.classList.add("hidden");
 
-    bootApple.src = "./icons/user-boot-logo.png";
+    bootApple.src = "./icons/apple.svg";
     startBootLog();
     bootOverlay.classList.remove("hidden");
 
-    await sleep(20000);
+    await sleep(5000);
+    bootApple.src = "./icons/user-boot-logo-hd.png";
+
+    await sleep(15000);
     stopBootLog();
     bootOverlay.classList.add("blackout");
     await sleep(3000);
