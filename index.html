@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Dopamine</title>
-<meta name="theme-color" content="#0b0b0f">
+<meta name="theme-color" content="#7d6ce6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,32 +18,47 @@
 <body>
 
 <div id="app">
-  <header class="brand">
-    <img class="brand-icon" src="./icons/icon-192.png" alt="">
-    <div class="brand-text">
-      <h1>Dopamine</h1>
-      <p>Jailbreak for iOS 15.0 – 27.0</p>
-    </div>
+  <header class="hero">
+    <h1>Dopamine</h1>
+    <p class="sub">iOS 26.0 &ndash; 27.0</p>
+    <p class="sub sub2">iPhone 15 Pro &middot; A17 Pro &middot; arm64e</p>
+    <p class="status"><span class="dot"></span>Status: Supported</p>
   </header>
 
-  <section class="card">
-    <div class="row"><span>Device</span><b>iPhone 15 Pro</b></div>
-    <div class="row"><span>iOS</span><b>27.0</b></div>
-    <div class="row"><span>Processor</span><b>A17 Pro · arm64e</b></div>
-    <div class="row"><span>Status</span><span class="pill"><i></i>Supported</span></div>
-  </section>
+  <nav class="menu" id="menu">
+    <button class="row" data-row="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 8.86a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.87 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span>Settings</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="row" data-row="respring">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      <span>Restart SpringBoard</span>
+    </button>
+    <button class="row" data-row="userspace">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      <span>Reboot Userspace</span>
+    </button>
+    <button class="row" data-row="credits">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Credits</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </nav>
 
   <div class="spacer"></div>
 
-  <button id="jailbreak" class="cta">Jailbreak</button>
-  <p class="footnote">iOS 27.0 · build 24A335</p>
+  <button id="jailbreak" class="cta">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+    <span>Jailbreak</span>
+  </button>
 </div>
 
 <div id="console" class="overlay hidden" aria-hidden="true">
   <div class="console-sheet">
     <div class="console-head">
       <span class="spinner"></span>
-      <span id="consoleTitle">Running exploit</span>
+      <span id="consoleTitle">Jailbreaking</span>
     </div>
     <pre id="log"></pre>
     <div class="progress"><div id="fill"></div></div>
@@ -52,6 +67,10 @@
 
 <div id="boot" class="overlay hidden" aria-hidden="true">
   <div class="boot-log"><div id="bootLog"></div></div>
+  <div class="boot-hud">
+    <div class="hud-line">iOS 26.0 &ndash; 27.0 <span class="dot"></span>Supported</div>
+    <div class="hud-line dim">iPhone 15 Pro &middot; A17 Pro &middot; arm64e</div>
+  </div>
   <div class="boot-center">
     <span class="check" id="checkLeft">&#10003;</span>
     <img class="apple" src="./icons/apple.svg" alt="">

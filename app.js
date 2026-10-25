@@ -19,26 +19,26 @@
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const STEPS = [
-    { text: "[*] Dopamine 2.4.3", cls: "dim", wait: 260 },
-    { text: "[*] Device: iPhone15,3 \u00b7 iOS 27.0 (24A335)", cls: "", wait: 230 },
-    { text: "[*] Checking device support...", cls: "dim", wait: 260 },
-    { text: "[+] arm64e \u00b7 A17 Pro \u00b7 supported", cls: "ok", wait: 300 },
-    { text: "[*] Locating kernel base...", cls: "", wait: 360 },
-    { text: "[+] kernel_base = 0xfffffff007004000", cls: "ok", wait: 300 },
-    { text: "[*] Running kfd...", cls: "", wait: 420 },
-    { text: "[+] physrw primitive ready", cls: "ok", wait: 320 },
-    { text: "[*] Bypassing PPL / KTRR...", cls: "", wait: 460 },
-    { text: "[+] trust cache injection ready", cls: "ok", wait: 330 },
-    { text: "[*] Remounting root filesystem...", cls: "", wait: 420 },
-    { text: "[+] /private/preboot PRF unlocked", cls: "ok", wait: 330 },
-    { text: "[*] Injecting bootstrap...", cls: "", wait: 430 },
-    { text: "[+] Sileo 2.4 installed", cls: "ok", wait: 280 },
-    { text: "[+] Zebra 1.1.30 installed", cls: "ok", wait: 280 },
-    { text: "[*] Rebuilding icon cache...", cls: "", wait: 380 },
-    { text: "[+] userspace reboot required", cls: "warn", wait: 420 }
+    { text: "[*] Dopamine 3.0.12", cls: "dim", wait: 220 },
+    { text: "[*] Device: iPhone15,3 \u00b7 iOS 27.0 (24A335)", cls: "", wait: 210 },
+    { text: "[*] Checking device support...", cls: "dim", wait: 240 },
+    { text: "[+] arm64e \u00b7 A17 Pro \u00b7 supported", cls: "ok", wait: 260 },
+    { text: "[*] Locating kernel base...", cls: "", wait: 320 },
+    { text: "[+] kernel_base = 0xfffffff007004000", cls: "ok", wait: 280 },
+    { text: "[*] Running ClearSword...", cls: "", wait: 380 },
+    { text: "[+] physrw primitive ready", cls: "ok", wait: 300 },
+    { text: "[*] Bypassing PPL / SPTM...", cls: "", wait: 420 },
+    { text: "[+] trust cache injection ready", cls: "ok", wait: 300 },
+    { text: "[*] Remounting root filesystem...", cls: "", wait: 380 },
+    { text: "[+] /private/preboot PRF unlocked", cls: "ok", wait: 300 },
+    { text: "[*] Injecting bootstrap...", cls: "", wait: 400 },
+    { text: "[+] Sileo 2.4 installed", cls: "ok", wait: 250 },
+    { text: "[+] Zebra 1.1.30 installed", cls: "ok", wait: 250 },
+    { text: "[*] Rebuilding icon cache...", cls: "", wait: 340 },
+    { text: "[+] userspace reboot required", cls: "warn", wait: 360 }
   ];
 
-  const BOOT_LINES = [
+  const KERNEL_LINES = [
     "AppleA17PRO: boot",
     "sep: secure enclave ready",
     "apfs: mounting rootfs",
@@ -81,33 +81,43 @@
 
   let busy = false;
 
+  const hex = (len) => {
+    let out = "";
+    for (let i = 0; i < len; i++) out += "0123456789abcdef"[Math.floor(Math.random() * 16)];
+    return out;
+  };
+
   function buildBootLog() {
     const lines = [];
-    let t = 0.018;
+    let t = 0.012;
 
-    for (let pass = 0; pass < 2; pass++) {
-      for (const line of BOOT_LINES) {
-        t += 0.02 + Math.random() * 0.12;
-        const stamp = "[" + t.toFixed(3).padStart(9, " ") + "] ";
-        lines.push(stamp + line);
+    for (let i = 0; i < 320; i++) {
+      if (i > 0 && Math.random() < 0.14) {
+        lines.push(lines[lines.length - 1]);
+        continue;
       }
+
+      t += 0.004 + Math.random() * 0.055;
+      const base = KERNEL_LINES[Math.floor(Math.random() * KERNEL_LINES.length)];
+      const extra = Math.random() < 0.18 ? " 0x" + hex(12) : "";
+      lines.push("[" + t.toFixed(3).padStart(8, " ") + "] " + base + extra);
     }
 
-    bootLog.textContent = lines.join("\n");
+    bootLog.textContent = lines.concat(lines).join("\n");
   }
 
   function resetOverlays() {
     consoleOverlay.classList.add("hidden");
+    consoleOverlay.classList.remove("closing");
     bootOverlay.classList.add("hidden");
+    bootOverlay.classList.remove("show", "logo", "blackout");
     doneOverlay.classList.add("hidden");
-    bootOverlay.classList.remove("show");
-    bootOverlay.classList.remove("fade");
     checkLeft.classList.remove("pop");
     checkRight.classList.remove("pop");
     logEl.innerHTML = "";
     fill.style.width = "0%";
-    consoleTitle.textContent = "Running exploit";
-    bootLog.style.animationPlayState = "running";
+    consoleTitle.textContent = "Jailbreaking";
+    bootLog.textContent = "";
   }
 
   function addLine(text, cls) {
@@ -135,13 +145,13 @@
     addLine("", "");
     logEl.lastChild.appendChild(cursor);
 
-    await sleep(900);
+    await sleep(750);
   }
 
   async function runBoot() {
     consoleTitle.textContent = "Rebooting...";
     consoleOverlay.classList.add("closing");
-    await sleep(260);
+    await sleep(240);
     consoleOverlay.classList.add("hidden");
     consoleOverlay.classList.remove("closing");
 
@@ -150,19 +160,20 @@
     await sleep(30);
     bootOverlay.classList.add("show");
 
-    await sleep(2600);
+    await sleep(2000);
+    bootOverlay.classList.add("logo");
+
+    await sleep(1200);
     checkLeft.classList.add("pop");
     checkRight.classList.add("pop");
-    bootLog.style.animationPlayState = "paused";
 
-    await sleep(900);
+    await sleep(16800);
+
     bootOverlay.classList.add("blackout");
-
     await sleep(3000);
+
     bootOverlay.classList.add("hidden");
-    bootOverlay.classList.remove("blackout");
-    bootOverlay.classList.remove("show");
-    bootOverlay.style.opacity = "";
+    bootOverlay.classList.remove("show", "logo", "blackout");
     app.removeAttribute("aria-hidden");
     doneOverlay.classList.remove("hidden");
   }
@@ -187,6 +198,12 @@
   closeDone.addEventListener("click", () => {
     doneOverlay.classList.add("hidden");
     resetOverlays();
+  });
+
+  document.querySelectorAll(".menu .row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      event.preventDefault();
+    });
   });
 
   if (new URLSearchParams(location.search).has("auto")) {
