@@ -54,6 +54,59 @@
   </button>
 </div>
 
+<div id="picker" class="overlay hidden" aria-hidden="true">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Package managers</h3>
+    <p class="sheet-sub">Choose what the jailbreak should install.</p>
+    <button class="pick" data-pkg="sileo">
+      <img src="./icons/pkg-sileo.png" alt="">
+      <span class="pick-text"><b>Sileo</b><small>Native package manager</small></span>
+      <span class="tick">&#10003;</span>
+    </button>
+    <button class="pick" data-pkg="zebra">
+      <img src="./icons/pkg-zebra.png" alt="">
+      <span class="pick-text"><b>Zebra</b><small>Package manager</small></span>
+      <span class="tick">&#10003;</span>
+    </button>
+    <div class="sheet-actions">
+      <button id="pickCancel" class="btn ghost">Cancel</button>
+      <button id="pickGo" class="btn primary" disabled>Jailbreak</button>
+    </div>
+  </div>
+</div>
+
+<div id="settingsSheet" class="overlay hidden" aria-hidden="true">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><h3>Settings</h3><button class="x" data-close="settingsSheet">Done</button></div>
+    <div class="setting"><span>Enable Tweaks</span><button class="switch on"></button></div>
+    <div class="setting"><span>Safe Mode</span><button class="switch"></button></div>
+    <div class="setting"><span>Hide Jailbreak</span><button class="switch"></button></div>
+    <div class="setting"><span>Rootless</span><button class="switch on"></button></div>
+    <div class="setting"><span>Version</span><span class="val">3.0.12</span></div>
+  </div>
+</div>
+
+<div id="creditsSheet" class="overlay hidden" aria-hidden="true">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><h3>Credits</h3><button class="x" data-close="creditsSheet">Done</button></div>
+    <div class="credit"><b>opa334</b><span>Jailbreak engine</span></div>
+    <div class="credit"><b>&#233;velyne</b><span>ElleKit</span></div>
+    <div class="credit"><b>xerusdesign</b><span>App icons</span></div>
+    <div class="credit"><b>Sileo Team</b><span>Package manager</span></div>
+    <div class="credit"><b>Zebra Team</b><span>Package manager</span></div>
+  </div>
+</div>
+
+<div id="respring" class="overlay system hidden" aria-hidden="true">
+  <div class="sys"><span class="bigspin"></span><span>Respringing&hellip;</span></div>
+</div>
+
+<div id="userspace" class="overlay system hidden" aria-hidden="true">
+  <div class="sys"><img class="sysapple" src="./icons/apple.svg" alt=""><span>Rebooting Userspace&hellip;</span></div>
+</div>
 <div id="console" class="overlay hidden" aria-hidden="true">
   <div class="console-sheet">
     <div class="console-head">

@@ -434,3 +434,259 @@ body {
 .done-card button:active {
   background: rgba(255, 255, 255, 0.24);
 }
+
+/* ---------- picker, settings, credits, system ---------- */
+
+#picker,
+#settingsSheet,
+#creditsSheet {
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(18, 9, 40, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.sheet {
+  width: 100%;
+  padding: 10px 20px calc(env(safe-area-inset-bottom) + 22px);
+  border-radius: 26px 26px 0 0;
+  background: linear-gradient(180deg, #33255c, #221744);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  animation: sheetIn 0.32s cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+
+@keyframes sheetIn {
+  from { transform: translateY(80%); }
+  to { transform: translateY(0); }
+}
+
+.sheet h3 {
+  margin: 4px 0 4px;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+}
+
+.sheet-sub {
+  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  touch-action: manipulation;
+}
+
+.pick img {
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+}
+
+.pick-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pick-text b {
+  font-size: 16px;
+}
+
+.pick-text small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.pick .tick {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.pick.selected {
+  background: rgba(110, 242, 160, 0.13);
+  border-color: rgba(110, 242, 160, 0.6);
+}
+
+.pick.selected .tick {
+  background: #6ef2a0;
+  border-color: #6ef2a0;
+  color: #0b2a14;
+  animation: tickPop 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes tickPop {
+  0% { transform: scale(0.4); }
+  70% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn {
+  flex: 1;
+  height: 50px;
+  border: 0;
+  border-radius: 15px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 650;
+  touch-action: manipulation;
+}
+
+.btn.primary {
+  background: #ffffff;
+  color: #1a1030;
+}
+
+.btn.primary:disabled {
+  opacity: 0.35;
+}
+
+.btn.ghost {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.x {
+  border: 0;
+  background: transparent;
+  color: #ff9fba;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 16px;
+}
+
+.setting:first-of-type {
+  border-top: 0;
+  margin-top: 8px;
+}
+
+.switch {
+  width: 51px;
+  height: 31px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.2);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.switch.on {
+  background: #6ef2a0;
+}
+
+.switch.on::after {
+  transform: translateX(20px);
+}
+
+.val {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+}
+
+.credit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 15px;
+}
+
+.credit:first-of-type {
+  border-top: 0;
+  margin-top: 8px;
+}
+
+.credit span {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+}
+
+.overlay.system {
+  z-index: 70;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sys {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+}
+
+.bigspin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+.sysapple {
+  width: 72px;
+  height: 72px;
+}

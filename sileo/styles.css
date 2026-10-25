@@ -1,11 +1,12 @@
 :root {
-  --bg1: #1a1130;
-  --bg2: #2a1a4e;
-  --card: rgba(255, 255, 255, 0.07);
-  --line: rgba(255, 255, 255, 0.10);
-  --text: #f4f1ff;
-  --muted: #a99fc7;
-  --accent: #b46bff;
+  --bg1: #232325;
+  --bg2: #151517;
+  --card: #2c2c2e;
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #f5f5f7;
+  --muted: #9b9ba1;
+  --accent: #30d158;
+  --blue: #0a84ff;
 }
 
 * {
@@ -38,9 +39,7 @@ body {
   inset: 0;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(120% 55% at 50% -10%, rgba(180, 107, 255, 0.28), transparent 60%),
-    linear-gradient(180deg, var(--bg1), var(--bg2));
+  background: linear-gradient(180deg, var(--bg1), var(--bg2));
 }
 
 .top {
@@ -49,7 +48,7 @@ body {
 
 .title-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
 }
 
@@ -66,6 +65,21 @@ body {
   font-weight: 600;
 }
 
+.avatar {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #0a84ff, #0051d5);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  align-self: center;
+}
+
 .search {
   margin-top: 14px;
   display: flex;
@@ -73,7 +87,7 @@ body {
   gap: 9px;
   padding: 11px 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.09);
+  background: #2c2c2e;
   color: var(--muted);
   font-size: 15px;
 }
@@ -115,7 +129,7 @@ h2 {
   padding: 14px 8px 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: var(--card);
+  background: #2c2c2e;
   color: var(--text);
   font-family: inherit;
   text-align: center;
@@ -144,7 +158,7 @@ h2 {
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: #2c2c2e;
 }
 
 .row {
@@ -236,7 +250,8 @@ h2 {
 }
 
 .row .get {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(48, 209, 88, 0.16);
+  color: var(--accent);
 }
 
 .tabs {
@@ -246,7 +261,7 @@ h2 {
   bottom: 0;
   display: flex;
   padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px);
-  background: rgba(18, 12, 34, 0.9);
+  background: rgba(28, 28, 30, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-top: 1px solid var(--line);
@@ -268,7 +283,7 @@ h2 {
 }
 
 .tab.active {
-  color: var(--accent);
+  color: var(--blue);
 }
 
 .tab svg {
@@ -296,7 +311,7 @@ h2 {
   width: 100%;
   padding: 10px 20px calc(env(safe-area-inset-bottom) + 24px);
   border-radius: 26px 26px 0 0;
-  background: linear-gradient(180deg, #2b1c4d, #1d1236);
+  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
   border-top: 1px solid var(--line);
   animation: up 0.3s cubic-bezier(0.2, 1, 0.3, 1) both;
 }

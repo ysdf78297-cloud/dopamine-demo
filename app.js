@@ -14,6 +14,12 @@
   const bootApple = $("bootApple");
   const button = $("jailbreak");
   const closeDone = $("closeDone");
+  const picker = $("picker");
+  const pickGo = $("pickGo");
+  const settingsSheet = $("settingsSheet");
+  const creditsSheet = $("creditsSheet");
+  const respring = $("respring");
+  const userspace = $("userspace");
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -72,6 +78,7 @@
   ];
 
   let busy = false;
+  const selectedPackages = new Set();
   let bootTimer = null;
   let bootClock = 0.012;
   let bootDelay = 55;
@@ -173,6 +180,15 @@
       await sleep(step.wait);
     }
 
+    if (selectedPackages.has("sileo")) {
+      addLine("[+] Sileo 2.4 installed", "ok");
+      await sleep(260);
+    }
+    if (selectedPackages.has("zebra")) {
+      addLine("[+] Zebra 1.1.30 installed", "ok");
+      await sleep(260);
+    }
+
     const cursor = document.createElement("span");
     cursor.className = "cur";
     addLine("", "");
@@ -217,16 +233,67 @@
     }
   }
 
-  button.addEventListener("click", start);
+  function openPicker() {
+    picker.classList.remove("hidden");
+    pickGo.disabled = selectedPackages.size === 0;
+  }
+
+  button.addEventListener("click", openPicker);
+
+  document.querySelectorAll(".pick").forEach((pick) => {
+    pick.addEventListener("click", () => {
+      const key = pick.dataset.pkg;
+      if (selectedPackages.has(key)) selectedPackages.delete(key);
+      else selectedPackages.add(key);
+      pick.classList.toggle("selected", selectedPackages.has(key));
+      pickGo.disabled = selectedPackages.size === 0;
+    });
+  });
+
+  $("pickCancel").addEventListener("click", () => picker.classList.add("hidden"));
+
+  pickGo.addEventListener("click", () => {
+    if (selectedPackages.size === 0) return;
+    picker.classList.add("hidden");
+    start();
+  });
 
   closeDone.addEventListener("click", () => {
     doneOverlay.classList.add("hidden");
     resetOverlays();
   });
 
+  document.querySelectorAll("[data-close]").forEach((el) => {
+    el.addEventListener("click", () => $(el.dataset.close).classList.add("hidden"));
+  });
+
+  document.querySelectorAll(".setting .switch").forEach((sw) => {
+    sw.addEventListener("click", () => sw.classList.toggle("on"));
+  });
+
+  async function runRespring() {
+    respring.classList.remove("hidden");
+    await sleep(1900);
+    respring.classList.add("hidden");
+  }
+
+  async function runUserspace() {
+    userspace.classList.remove("hidden");
+    await sleep(4200);
+    userspace.classList.add("hidden");
+  }
+
+  const actions = {
+    settings: () => settingsSheet.classList.remove("hidden"),
+    credits: () => creditsSheet.classList.remove("hidden"),
+    respring: runRespring,
+    userspace: runUserspace
+  };
+
   document.querySelectorAll(".menu .row").forEach((row) => {
-    row.addEventListener("click", (event) => {
-      event.preventDefault();
+    row.addEventListener("click", () => {
+      const action = actions[row.dataset.row];
+      if (action) action();
     });
   });
 
