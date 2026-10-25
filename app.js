@@ -11,8 +11,6 @@
   const fill = $("fill");
   const consoleTitle = $("consoleTitle");
   const bootLog = $("bootLog");
-  const checkLeft = $("checkLeft");
-  const checkRight = $("checkRight");
   const button = $("jailbreak");
   const closeDone = $("closeDone");
 
@@ -91,7 +89,7 @@
     const lines = [];
     let t = 0.012;
 
-    for (let i = 0; i < 320; i++) {
+    for (let i = 0; i < 460; i++) {
       if (i > 0 && Math.random() < 0.14) {
         lines.push(lines[lines.length - 1]);
         continue;
@@ -103,17 +101,16 @@
       lines.push("[" + t.toFixed(3).padStart(8, " ") + "] " + base + extra);
     }
 
-    bootLog.textContent = lines.concat(lines).join("\n");
+    const half = Math.floor(lines.length / 2);
+    bootLog.textContent = lines.slice(half).concat(lines.slice(0, half)).join("\n");
   }
 
   function resetOverlays() {
     consoleOverlay.classList.add("hidden");
     consoleOverlay.classList.remove("closing");
     bootOverlay.classList.add("hidden");
-    bootOverlay.classList.remove("show", "logo", "blackout");
+    bootOverlay.classList.remove("show", "blackout");
     doneOverlay.classList.add("hidden");
-    checkLeft.classList.remove("pop");
-    checkRight.classList.remove("pop");
     logEl.innerHTML = "";
     fill.style.width = "0%";
     consoleTitle.textContent = "Jailbreaking";
@@ -160,20 +157,13 @@
     await sleep(30);
     bootOverlay.classList.add("show");
 
-    await sleep(2000);
-    bootOverlay.classList.add("logo");
-
-    await sleep(1200);
-    checkLeft.classList.add("pop");
-    checkRight.classList.add("pop");
-
-    await sleep(16800);
+    await sleep(20000);
 
     bootOverlay.classList.add("blackout");
     await sleep(3000);
 
     bootOverlay.classList.add("hidden");
-    bootOverlay.classList.remove("show", "logo", "blackout");
+    bootOverlay.classList.remove("show", "blackout");
     app.removeAttribute("aria-hidden");
     doneOverlay.classList.remove("hidden");
   }

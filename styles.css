@@ -333,37 +333,6 @@ body {
   to { transform: translateY(0); }
 }
 
-.boot-hud {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 12px);
-  left: 12px;
-  right: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 9.5px;
-  line-height: 1.7;
-  letter-spacing: 0.2px;
-  color: rgba(255, 255, 255, 0.78);
-  z-index: 2;
-}
-
-.hud-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hud-line.dim {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.hud-line .dot {
-  width: 6px;
-  height: 6px;
-}
 
 .boot-center {
   position: absolute;
@@ -374,52 +343,15 @@ body {
   gap: 18px;
 }
 
-.boot-center::before {
-  content: "";
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.8) 42%, transparent 70%);
-}
-
 .apple {
   position: relative;
   display: block;
   width: 86px;
   height: 86px;
-  opacity: 0;
-  transform: scale(0.94);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.22));
-}
-
-#boot.logo .apple {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.check {
-  position: relative;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--green);
-  opacity: 0;
-  transform: scale(0.4);
-  text-shadow: 0 0 18px rgba(110, 242, 160, 0.6);
-}
-
-.check.pop {
-  animation: checkPop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
-}
-
-@keyframes checkPop {
-  to { opacity: 1; transform: scale(1); }
 }
 
 #boot.blackout .boot-log,
-#boot.blackout .boot-center,
-#boot.blackout .boot-hud {
+#boot.blackout .boot-center {
   opacity: 0;
   transition: opacity 0.45s ease;
 }
