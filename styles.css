@@ -441,7 +441,8 @@ body {
 #picker,
 #settingsSheet,
 #creditsSheet,
-#otherSheet {
+#otherSheet,
+#switchConfirm {
   z-index: 60;
   display: flex;
   align-items: flex-end;
@@ -824,4 +825,55 @@ body {
 @keyframes toastOut {
   from { opacity: 1; }
   to { opacity: 0; transform: translateY(-8px); }
+}
+.btn.danger {
+  background: #ff3b30;
+  color: #fff;
+}
+
+.switch-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.switch-apple {
+  width: 86px;
+  height: 86px;
+  flex: 0 0 auto;
+}
+
+.switch-log {
+  width: 100%;
+  margin: 22px 0 0;
+  max-height: 52vh;
+  overflow: hidden;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #ffffff;
+  white-space: pre;
+  text-align: left;
+}
+
+.switch-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.switch-stage h2 {
+  margin: 0;
+  font-size: 21px;
+  text-align: center;
+}
+
+.switch-stage .btn {
+  width: 220px;
+  flex: 0 0 auto;
+  margin-top: 18px;
 }

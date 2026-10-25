@@ -76,6 +76,33 @@
   </div>
 </div>
 
+<div id="switchConfirm" class="overlay hidden" aria-hidden="true">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Switch to Android?</h3>
+    <p class="sheet-sub">Are you sure? This might break your device.</p>
+    <div class="sheet-actions">
+      <button id="switchNo" class="btn ghost">No</button>
+      <button id="switchYes" class="btn danger">Yes</button>
+    </div>
+  </div>
+</div>
+
+<div id="switchFlow" class="overlay system hidden" aria-hidden="true">
+  <div class="switch-stage hidden" id="switchBootStage">
+    <img class="switch-apple" src="./icons/apple.svg" alt="">
+    <pre id="switchLog" class="switch-log"></pre>
+  </div>
+  <div class="switch-stage hidden" id="switchLogoStage">
+    <img id="switchLogo" class="switch-logo" src="./icons/apple.svg" alt="">
+  </div>
+  <div class="switch-stage hidden" id="switchThanksStage">
+    <div class="done-badge">&#10003;</div>
+    <h2>Thank you for the simulation</h2>
+    <button id="switchClose" class="btn primary">Done</button>
+  </div>
+</div>
+
 <div id="unlockFlow" class="overlay system hidden" aria-hidden="true">
   <div id="unlockWait" class="unlock-phase">
     <span class="bigspin"></span>
@@ -84,7 +111,7 @@
   <div id="unlockApple" class="unlock-phase hidden">
     <img class="unlock-apple" src="./icons/apple.svg" alt="">
     <span>Boot order unlocked</span>
-    <small>Verifying boot chain&hellip;</small>
+    <small>Boot order is unlocked. This device is not secure.</small>
   </div>
   <div id="unlockDone" class="unlock-phase hidden">
     <div class="done-badge">&#10003;</div>

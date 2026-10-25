@@ -26,6 +26,13 @@
   const unlockApple = $("unlockApple");
   const unlockDone = $("unlockDone");
   const toasts = $("toasts");
+  const switchConfirm = $("switchConfirm");
+  const switchFlow = $("switchFlow");
+  const switchBootStage = $("switchBootStage");
+  const switchLogoStage = $("switchLogoStage");
+  const switchThanksStage = $("switchThanksStage");
+  const switchLog = $("switchLog");
+  const switchLogo = $("switchLogo");
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -337,8 +344,92 @@
     }, 2000);
   }
 
+  let switchRun = 0;
+
+  const SWITCH_MESSAGES = [
+    "migrating user data",
+    "copying /private/var/mobile",
+    "converting APFS to ext4",
+    "flashing system_a",
+    "verifying boot image",
+    "unlocking partition table",
+    "writing vendor_boot",
+    "replacing boot chain",
+    "installing Android 16",
+    "wiping Apple containers",
+    "mapping /data",
+    "starting recovery"
+  ];
+
+  async function runSwitch() {
+    const id = ++switchRun;
+    switchFlow.classList.remove("hidden");
+    switchBootStage.classList.add("hidden");
+    switchLogoStage.classList.add("hidden");
+    switchThanksStage.classList.add("hidden");
+    switchLog.textContent = "";
+    switchLogo.src = "./icons/apple.svg";
+
+    await sleep(2000);
+    if (id !== switchRun) return;
+    switchBootStage.classList.remove("hidden");
+
+    let t = 0.02;
+    const timer = setInterval(() => {
+      t += 0.015 + Math.random() * 0.05;
+      const message = SWITCH_MESSAGES[Math.floor(Math.random() * SWITCH_MESSAGES.length)];
+      switchLog.textContent += "[" + t.toFixed(5) + "] " + message + "\n";
+      if (switchLog.textContent.length > 4200) switchLog.textContent = switchLog.textContent.slice(-3000);
+    }, 55);
+
+    await sleep(4000);
+    clearInterval(timer);
+    if (id !== switchRun) return;
+
+    for (let i = 0; i < 5; i++) {
+      switchLog.textContent += "[*] migrating user data...\n";
+      await sleep(700);
+      if (id !== switchRun) return;
+    }
+
+    switchLog.textContent = "";
+    switchBootStage.classList.add("hidden");
+    switchLogoStage.classList.remove("hidden");
+
+    for (let i = 0; i < 16; i++) {
+      switchLogo.src = i % 2 === 0 ? "./icons/android-logo.svg" : "./icons/apple.svg";
+      await sleep(250);
+      if (id !== switchRun) return;
+    }
+
+    switchLogo.src = "./icons/android-logo.svg";
+    await sleep(1200);
+    if (id !== switchRun) return;
+
+    switchLogoStage.classList.add("hidden");
+    await sleep(3000);
+    if (id !== switchRun) return;
+
+    switchThanksStage.classList.remove("hidden");
+  }
+
+  function closeSwitch() {
+    switchRun++;
+    switchFlow.classList.add("hidden");
+    switchBootStage.classList.add("hidden");
+    switchLogoStage.classList.add("hidden");
+    switchThanksStage.classList.add("hidden");
+    switchLog.textContent = "";
+  }
+
   $("unlockBoot").addEventListener("click", runUnlock);
-  $("switchAndroid").addEventListener("click", () => showToast("Coming soon"));
+  $("switchAndroid").addEventListener("click", () => switchConfirm.classList.remove("hidden"));
+  $("switchNo").addEventListener("click", () => switchConfirm.classList.add("hidden"));
+  $("switchYes").addEventListener("click", () => {
+    switchConfirm.classList.add("hidden");
+    runSwitch();
+  });
+  $("switchClose").addEventListener("click", closeSwitch);
   $("unlockClose").addEventListener("click", closeUnlock);
 
   const actions = {
