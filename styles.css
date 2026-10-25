@@ -301,12 +301,6 @@ body {
 #boot {
   background: #000;
   z-index: 40;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-#boot.show {
-  opacity: 1;
 }
 
 .boot-log {
@@ -354,7 +348,6 @@ body {
 #boot.blackout .boot-log,
 #boot.blackout .boot-center {
   opacity: 0;
-  transition: opacity 0.45s ease;
 }
 
 /* ---------- reveal ---------- */

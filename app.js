@@ -74,6 +74,7 @@
   let busy = false;
   let bootTimer = null;
   let bootClock = 0.012;
+  let bootDelay = 55;
 
   const hex = (len) => {
     let out = "";
@@ -83,7 +84,7 @@
 
   function stopBootLog() {
     if (bootTimer !== null) {
-      clearInterval(bootTimer);
+      clearTimeout(bootTimer);
       bootTimer = null;
     }
   }
@@ -115,7 +116,27 @@
     };
 
     for (let i = 0; i < 60; i++) tick();
-    bootTimer = setInterval(tick, 55);
+
+    const schedule = () => {
+      if (bootTimer === null) return;
+
+      bootDelay += (Math.random() - 0.5) * 14;
+      bootDelay = Math.max(18, Math.min(160, bootDelay));
+
+      if (Math.random() < 0.02) bootDelay = 16 + Math.random() * 14;
+      if (Math.random() < 0.015) bootDelay = 120 + Math.random() * 50;
+
+      bootTimer = setTimeout(() => {
+        tick();
+        schedule();
+      }, bootDelay);
+    };
+
+    bootDelay = 52;
+    bootTimer = setTimeout(() => {
+      tick();
+      schedule();
+    }, bootDelay);
   }
 
   function resetOverlays() {
@@ -161,17 +182,11 @@
   }
 
   async function runBoot() {
-    consoleTitle.textContent = "Rebooting...";
-    consoleOverlay.classList.add("closing");
-    await sleep(240);
     consoleOverlay.classList.add("hidden");
-    consoleOverlay.classList.remove("closing");
 
     bootApple.src = "./icons/apple.svg";
     startBootLog();
     bootOverlay.classList.remove("hidden");
-    await sleep(30);
-    bootOverlay.classList.add("show");
 
     await sleep(3000);
     bootApple.src = "./icons/boot-logo.png";
