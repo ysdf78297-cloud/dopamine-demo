@@ -14,3 +14,18 @@ Nothing is installed, nothing is exploited, and nothing leaves the device.
   Apple devices.
 - Not affiliated with Apple, or with the real Dopamine jailbreak. Icon is original.
 - No real jailbreak exists for iOS 27.0; this is only a UI simulation.
+
+## Install on an iPhone with a Mac
+
+Xcode signs the app with your own Apple ID, no Sideloadly needed.
+
+1. Install Xcode from the App Store.
+2. Clone or download this repo, then in Terminal:
+   `bash ios/mac-setup.sh`
+3. In Xcode: **Settings > Accounts** > add your Apple ID.
+4. Select the **Dopamine** target > **Signing & Capabilities** > pick your Team.
+   If the bundle identifier is taken, change `com.demo.dopamine` to something unique.
+5. Plug in the iPhone, choose it at the top, press **Run**.
+6. First launch: iPhone **Settings > General > VPN & Device Management** > Trust your Apple ID.
+
+The free signing lasts 7 days; press Run again to renew it.
