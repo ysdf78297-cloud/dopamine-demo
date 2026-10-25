@@ -341,8 +341,9 @@ body {
 .apple {
   position: relative;
   display: block;
-  width: 86px;
-  height: 86px;
+  width: auto;
+  height: 112px;
+  max-width: 92%;
 }
 
 #boot.blackout .boot-log,
