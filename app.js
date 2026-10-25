@@ -11,6 +11,7 @@
   const fill = $("fill");
   const consoleTitle = $("consoleTitle");
   const bootLog = $("bootLog");
+  const bootApple = $("bootApple");
   const button = $("jailbreak");
   const closeDone = $("closeDone");
 
@@ -36,48 +37,43 @@
     { text: "[+] userspace reboot required", cls: "warn", wait: 360 }
   ];
 
-  const KERNEL_LINES = [
-    "AppleA17PRO: boot",
-    "sep: secure enclave ready",
-    "apfs: mounting rootfs",
-    "ApplePMP: display init",
-    "IOHIDFamily: 3 devices",
-    "AppleSEPManager: mailbox ready",
-    "ANS2: nand ready",
-    "AppleARMPMU: counter start",
-    "IOMedia: scanning partition table",
-    "apfs: volume dopa-root",
-    "dyld: shared cache 27.0",
-    "remoted: handshake ok",
-    "launchd: bootstrap complete",
-    "configd: network stack up",
-    "backboardd: display awake",
-    "SpringBoard: starting",
-    "identityservices: signed in",
-    "dasd: activities loaded",
-    "powerd: battery 87%",
-    "wifid: firmware ready",
-    "CommCenter: baseband ok",
-    "mediaserverd: audio online",
-    "locationd: ready",
-    "assertiond: ready",
-    "runningboardd: 42 processes",
-    "pkd: plugin registry loaded",
-    "containermanagerd: ok",
-    "cloudd: synced",
-    "sharingd: ready",
-    "sb: icon cache rebuilt",
-    "sb: layout restored",
-    "dopa: bootstrap mounted",
-    "dopa: sileo registered",
-    "dopa: zebra registered",
-    "dopa: launch daemons 7/7",
-    "dopa: rootless prefix ok",
-    "dopa: verifying entitlements",
-    "dopa: userspace reboot"
+  const BOOT_MESSAGES = [
+    "kernel: AppleA17PRO boot-args -v keepsyms=1 debug=0x14e",
+    "apfs: container superblock 0x0000000000000000",
+    "apfs: checkpoint descriptor area mounted read-only",
+    "IOPlatformExpertDevice: platform expert attached",
+    "AppleS5L8960XIO: pmu firmware loaded",
+    "AppleARMPMU: performance counters online",
+    "sep: secure enclave mailbox established",
+    "AppleSEPManager: endpoint 0x00 ready",
+    "AppleANS2NVMeController: queue depth 64",
+    "IOMedia: partition 0 fs apfs name dopa-root",
+    "apfs: volume dopa-root mounted at /private/preboot",
+    "dyld: shared cache 27.0 mapped",
+    "amfid: verifying code signature for launchd",
+    "trustd: trust cache 0x0000000000000000 loaded",
+    "launchd[1]: bootstrap port registered",
+    "launchd[1]: service com.apple.backboardd starting",
+    "backboardd: display pipeline ready 120hz",
+    "SpringBoard: initializing scene host",
+    "runningboardd: process assertions restored",
+    "containermanagerd: class 2 container ready",
+    "mobileassetd: asset catalog 12,481 entries",
+    "remoted: connection established with peer",
+    "identityservicesd: account state restored",
+    "wifid: interface en0 firmware 18.5",
+    "CommCenter: baseband firmware 6.0",
+    "mediaserverd: audio graph initialized",
+    "locationd: location services online",
+    "ssh: bootstrap daemon loaded",
+    "dopa: rootless prefix /var/jb mounted",
+    "dopa: userspace reboot handoff complete",
+    "dopa: launch daemons 7/7 running"
   ];
 
   let busy = false;
+  let bootTimer = null;
+  let bootClock = 0.012;
 
   const hex = (len) => {
     let out = "";
@@ -85,31 +81,50 @@
     return out;
   };
 
-  function buildBootLog() {
-    const lines = [];
-    let t = 0.012;
+  function stopBootLog() {
+    if (bootTimer !== null) {
+      clearInterval(bootTimer);
+      bootTimer = null;
+    }
+  }
 
-    for (let i = 0; i < 460; i++) {
-      if (i > 0 && Math.random() < 0.14) {
-        lines.push(lines[lines.length - 1]);
-        continue;
+  function startBootLog() {
+    stopBootLog();
+    bootLog.textContent = "";
+    bootClock = 0.012;
+
+    const tick = () => {
+      let text;
+
+      if (bootLog.lastElementChild && Math.random() < 0.12) {
+        text = bootLog.lastElementChild.textContent;
+      } else {
+        bootClock += 0.002 + Math.random() * 0.02;
+        const base = BOOT_MESSAGES[Math.floor(Math.random() * BOOT_MESSAGES.length)];
+        let extra = "";
+        const roll = Math.random();
+        if (roll < 0.22) extra = " 0x" + hex(40);
+        else if (roll < 0.34) extra = " " + hex(24);
+        text = "[" + bootClock.toFixed(6).padStart(12, " ") + "] " + base + extra;
       }
 
-      t += 0.004 + Math.random() * 0.055;
-      const base = KERNEL_LINES[Math.floor(Math.random() * KERNEL_LINES.length)];
-      const extra = Math.random() < 0.18 ? " 0x" + hex(12) : "";
-      lines.push("[" + t.toFixed(3).padStart(8, " ") + "] " + base + extra);
-    }
+      const div = document.createElement("div");
+      div.textContent = text;
+      bootLog.appendChild(div);
+      if (bootLog.childElementCount > 120) bootLog.firstElementChild.remove();
+    };
 
-    const half = Math.floor(lines.length / 2);
-    bootLog.textContent = lines.slice(half).concat(lines.slice(0, half)).join("\n");
+    for (let i = 0; i < 60; i++) tick();
+    bootTimer = setInterval(tick, 55);
   }
 
   function resetOverlays() {
     consoleOverlay.classList.add("hidden");
     consoleOverlay.classList.remove("closing");
+    stopBootLog();
     bootOverlay.classList.add("hidden");
     bootOverlay.classList.remove("show", "blackout");
+    bootApple.src = "./icons/apple.svg";
     doneOverlay.classList.add("hidden");
     logEl.innerHTML = "";
     fill.style.width = "0%";
@@ -152,13 +167,17 @@
     consoleOverlay.classList.add("hidden");
     consoleOverlay.classList.remove("closing");
 
-    buildBootLog();
+    bootApple.src = "./icons/apple.svg";
+    startBootLog();
     bootOverlay.classList.remove("hidden");
     await sleep(30);
     bootOverlay.classList.add("show");
 
-    await sleep(20000);
+    await sleep(3000);
+    bootApple.src = "./icons/boot-logo.png";
 
+    await sleep(17000);
+    stopBootLog();
     bootOverlay.classList.add("blackout");
     await sleep(3000);
 

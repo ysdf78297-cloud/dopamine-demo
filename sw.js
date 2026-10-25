@@ -1,4 +1,4 @@
-const CACHE = "dopamine-demo-v2";
+const CACHE = "dopamine-demo-v3";
 const FILES = [
   "./",
   "./index.html",
@@ -8,7 +8,8 @@ const FILES = [
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/apple.svg"
+  "./icons/apple.svg",
+  "./icons/boot-logo.png"
 ];
 
 self.addEventListener("install", (event) => {
