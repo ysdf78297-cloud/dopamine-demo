@@ -37,8 +37,7 @@
     { text: "[*] Remounting root filesystem...", cls: "", wait: 380 },
     { text: "[+] /private/preboot PRF unlocked", cls: "ok", wait: 300 },
     { text: "[*] Injecting bootstrap...", cls: "", wait: 400 },
-    { text: "[+] Sileo 2.4 installed", cls: "ok", wait: 250 },
-    { text: "[+] Zebra 1.1.30 installed", cls: "ok", wait: 250 },
+
     { text: "[*] Rebuilding icon cache...", cls: "", wait: 340 },
     { text: "[+] userspace reboot required", cls: "warn", wait: 360 }
   ];
@@ -127,11 +126,11 @@
     const schedule = () => {
       if (bootTimer === null) return;
 
-      bootDelay += (Math.random() - 0.5) * 14;
-      bootDelay = Math.max(18, Math.min(160, bootDelay));
+      bootDelay += (Math.random() - 0.5) * 22;
+      bootDelay = Math.max(2, Math.min(90, bootDelay));
 
-      if (Math.random() < 0.02) bootDelay = 16 + Math.random() * 14;
-      if (Math.random() < 0.015) bootDelay = 120 + Math.random() * 50;
+      if (Math.random() < 0.09) bootDelay = 1 + Math.random() * 3;
+      if (Math.random() < 0.01) bootDelay = 90 + Math.random() * 40;
 
       bootTimer = setTimeout(() => {
         tick();
@@ -139,7 +138,7 @@
       }, bootDelay);
     };
 
-    bootDelay = 52;
+    bootDelay = 12;
     bootTimer = setTimeout(() => {
       tick();
       schedule();
@@ -205,7 +204,7 @@
     bootOverlay.classList.remove("hidden");
 
     await sleep(3000);
-    bootApple.src = "./icons/boot-logo.png";
+    bootApple.src = "./icons/kraken-logo.png";
 
     await sleep(17000);
     stopBootLog();
@@ -234,8 +233,10 @@
   }
 
   function openPicker() {
+    selectedPackages.clear();
+    document.querySelectorAll(".pick").forEach((pick) => pick.classList.remove("selected"));
+    pickGo.disabled = true;
     picker.classList.remove("hidden");
-    pickGo.disabled = selectedPackages.size === 0;
   }
 
   button.addEventListener("click", openPicker);
