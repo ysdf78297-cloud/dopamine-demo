@@ -1,0 +1,59 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage web assets into the app bundle
+        run: |
+          mkdir -p ios/www/icons
+          cp index.html styles.css app.js manifest.webmanifest ios/www/
+          cp icons/*.png ios/www/icons/
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          xcodebuild \
+            -project Dopamine.xcodeproj \
+            -scheme Dopamine \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package unsigned IPA
+        working-directory: ios
+        run: |
+          mkdir -p out/Payload
+          cp -R build/Build/Products/Release-iphoneos/Dopamine.app out/Payload/
+          cd out
+          zip -qry Dopamine.ipa Payload
+          ls -lh Dopamine.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dopamine-ipa
+          path: ios/out/Dopamine.ipa
+          if-no-files-found: error
