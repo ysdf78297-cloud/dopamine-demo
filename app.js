@@ -155,11 +155,13 @@
     checkRight.classList.add("pop");
     bootLog.style.animationPlayState = "paused";
 
-    await sleep(3400);
-    bootOverlay.style.opacity = "0";
+    await sleep(900);
+    bootOverlay.classList.add("blackout");
 
-    await sleep(450);
+    await sleep(3000);
     bootOverlay.classList.add("hidden");
+    bootOverlay.classList.remove("blackout");
+    bootOverlay.classList.remove("show");
     bootOverlay.style.opacity = "";
     app.removeAttribute("aria-hidden");
     doneOverlay.classList.remove("hidden");

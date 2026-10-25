@@ -5,6 +5,11 @@ on:
     branches: [ main ]
     paths:
       - "ios/**"
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "manifest.webmanifest"
+      - "icons/**"
       - ".github/workflows/ios.yml"
   workflow_dispatch:
 
@@ -18,7 +23,7 @@ jobs:
         run: |
           mkdir -p ios/www/icons
           cp index.html styles.css app.js manifest.webmanifest ios/www/
-          cp icons/*.png ios/www/icons/
+          cp icons/*.png icons/*.svg ios/www/icons/
 
       - name: Install XcodeGen
         run: brew install xcodegen

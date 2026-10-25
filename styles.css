@@ -323,12 +323,17 @@ body {
 }
 
 .apple {
-  font-family: -apple-system, "Helvetica Neue", "Segoe UI Symbol", sans-serif;
-  font-size: 88px;
   position: relative;
-  line-height: 1;
-  color: #fff;
-  filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.18));
+  display: block;
+  width: 86px;
+  height: 86px;
+  filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.22));
+}
+
+#boot.blackout .boot-log,
+#boot.blackout .boot-center {
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .check {

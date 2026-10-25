@@ -1,4 +1,4 @@
-const CACHE = "dopamine-demo-v1";
+const CACHE = "dopamine-demo-v2";
 const FILES = [
   "./",
   "./index.html",
@@ -7,7 +7,8 @@ const FILES = [
   "./manifest.webmanifest",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./icons/apple.svg"
 ];
 
 self.addEventListener("install", (event) => {
