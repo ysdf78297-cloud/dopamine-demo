@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Sileo</title>
+<meta name="theme-color" content="#170f2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sileo">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="sileo">
+  <header class="top">
+    <div class="title-row"><h1>Sileo</h1><span class="ver">2.4</span></div>
+    <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><span>Search packages</span></div>
+  </header>
+
+  <main>
+    <h2>Featured</h2>
+    <div class="cards">
+      <article class="card" data-name="NewTerm 3" data-sub="Terminal emulator" data-size="9.4 MB" data-icon="term">
+        <div class="appicon term">&gt;_</div>
+        <b>NewTerm 3</b>
+        <span>Terminal emulator</span>
+        <button class="get">GET</button>
+      </article>
+      <article class="card" data-name="Filza" data-sub="File manager" data-size="18.2 MB" data-icon="filza">
+        <div class="appicon filza">F</div>
+        <b>Filza</b>
+        <span>File manager</span>
+        <button class="get">GET</button>
+      </article>
+      <article class="card" data-name="iCleaner Pro" data-sub="System cleaner" data-size="5.1 MB" data-icon="clean">
+        <div class="appicon clean">iC</div>
+        <b>iCleaner Pro</b>
+        <span>System cleaner</span>
+        <button class="get">GET</button>
+      </article>
+    </div>
+
+    <h2>Recently Updated</h2>
+    <div class="list">
+      <button class="row" data-name="Apps Manager" data-sub="App data backup" data-size="11.8 MB" data-icon="apps">
+        <span class="appicon apps">A</span>
+        <span class="meta"><b>Apps Manager</b><small>App data backup</small></span>
+        <span class="get">GET</span>
+      </button>
+      <button class="row" data-name="SnowBoard" data-sub="Theme engine" data-size="7.6 MB" data-icon="snow">
+        <span class="appicon snow">S</span>
+        <span class="meta"><b>SnowBoard</b><small>Theme engine</small></span>
+        <span class="get">GET</span>
+      </button>
+      <button class="row" data-name="Barmoji" data-sub="Emoji in the bar" data-size="0.4 MB" data-icon="barmoji">
+        <span class="appicon barmoji">B</span>
+        <span class="meta"><b>Barmoji</b><small>Emoji in the bar</small></span>
+        <span class="get">GET</span>
+      </button>
+      <button class="row" data-name="PreferenceLoader" data-sub="Tweak preferences" data-size="1.2 MB" data-icon="prefs">
+        <span class="appicon prefs">P</span>
+        <span class="meta"><b>PreferenceLoader</b><small>Tweak preferences</small></span>
+        <span class="get">GET</span>
+      </button>
+    </div>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab active"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span>Featured</span></button>
+    <button class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Packages</span></button>
+    <button class="tab"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Sources</span></button>
+    <button class="tab"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg><span>Queue</span></button>
+  </nav>
+</div>
+
+<div id="sheet" class="hidden">
+  <div class="sheet-card">
+    <div class="grab"></div>
+    <div class="detail">
+      <div class="appicon big" id="dIcon">S</div>
+      <div class="dmeta">
+        <b id="dName">Package</b>
+        <span id="dSub">Description</span>
+        <span class="dinfo" id="dInfo">Version 1.0 · 9.4 MB</span>
+      </div>
+    </div>
+    <button id="install" class="install">Install</button>
+    <p class="note">Free · iOS 15.0 or later</p>
+  </div>
+</div>
+
+<div id="toast" class="toast">Installed</div>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -18,8 +18,12 @@ targets:
     type: application
     platform: iOS
     sources:
+      - path: Shared/WebApp.swift
       - path: Dopamine
-      - path: www
+        excludes:
+          - "www"
+          - "www/**"
+      - path: Dopamine/www
         type: folder
     settings:
       base:
@@ -30,10 +34,62 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
 
+  Sileo:
+    type: application
+    platform: iOS
+    sources:
+      - path: Shared/WebApp.swift
+      - path: Sileo
+        excludes:
+          - "www"
+          - "www/**"
+      - path: Sileo/www
+        type: folder
+    settings:
+      base:
+        PRODUCT_NAME: Sileo
+        PRODUCT_BUNDLE_IDENTIFIER: com.demo.sileo
+        INFOPLIST_FILE: Sileo/Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+
+  Zebra:
+    type: application
+    platform: iOS
+    sources:
+      - path: Shared/WebApp.swift
+      - path: Zebra
+        excludes:
+          - "www"
+          - "www/**"
+      - path: Zebra/www
+        type: folder
+    settings:
+      base:
+        PRODUCT_NAME: Zebra
+        PRODUCT_BUNDLE_IDENTIFIER: com.demo.zebra
+        INFOPLIST_FILE: Zebra/Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+
 schemes:
   Dopamine:
     build:
       targets:
         Dopamine: all
+    run:
+      config: Release
+  Sileo:
+    build:
+      targets:
+        Sileo: all
+    run:
+      config: Release
+  Zebra:
+    build:
+      targets:
+        Zebra: all
     run:
       config: Release

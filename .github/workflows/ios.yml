@@ -1,10 +1,12 @@
-name: Build IPA
+name: Build IPAs
 
 on:
   push:
     branches: [ main ]
     paths:
       - "ios/**"
+      - "sileo/**"
+      - "zebra/**"
       - "index.html"
       - "styles.css"
       - "app.js"
@@ -19,11 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Stage web assets into the app bundle
+      - name: Stage web assets into the app bundles
         run: |
-          mkdir -p ios/www/icons
-          cp index.html styles.css app.js manifest.webmanifest ios/www/
-          cp icons/*.png icons/*.svg ios/www/icons/
+          mkdir -p ios/Dopamine/www/icons ios/Sileo/www ios/Zebra/www
+          cp index.html styles.css app.js manifest.webmanifest ios/Dopamine/www/
+          cp icons/*.png icons/*.svg ios/Dopamine/www/icons/
+          cp sileo/index.html sileo/styles.css sileo/app.js sileo/icon-180.png sileo/icon-192.png ios/Sileo/www/
+          cp zebra/index.html zebra/styles.css zebra/app.js zebra/icon-180.png zebra/icon-192.png ios/Zebra/www/
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -35,30 +39,36 @@ jobs:
       - name: Build (unsigned)
         working-directory: ios
         run: |
-          xcodebuild \
-            -project Dopamine.xcodeproj \
-            -scheme Dopamine \
-            -sdk iphoneos \
-            -configuration Release \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            build
+          for APP in Dopamine Sileo Zebra; do
+            xcodebuild \
+              -project Dopamine.xcodeproj \
+              -scheme "$APP" \
+              -sdk iphoneos \
+              -configuration Release \
+              -derivedDataPath "build-$APP" \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGN_ENTITLEMENTS="" \
+              build
+          done
 
-      - name: Package unsigned IPA
+      - name: Package unsigned IPAs
         working-directory: ios
         run: |
-          mkdir -p out/Payload
-          cp -R build/Build/Products/Release-iphoneos/Dopamine.app out/Payload/
-          cd out
-          zip -qry Dopamine.ipa Payload
-          ls -lh Dopamine.ipa
+          mkdir -p out
+          for APP in Dopamine Sileo Zebra; do
+            rm -rf out/Payload
+            mkdir -p out/Payload
+            cp -R "build-$APP/Build/Products/Release-iphoneos/$APP.app" out/Payload/
+            (cd out && zip -qry "$APP.ipa" Payload)
+            ls -lh "out/$APP.ipa"
+          done
+          rm -rf out/Payload
 
-      - name: Upload IPA
+      - name: Upload IPAs
         uses: actions/upload-artifact@v4
         with:
-          name: Dopamine-ipa
-          path: ios/out/Dopamine.ipa
+          name: ipas
+          path: ios/out/*.ipa
           if-no-files-found: error

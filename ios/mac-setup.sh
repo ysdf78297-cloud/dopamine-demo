@@ -4,9 +4,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-mkdir -p ios/www/icons
-cp index.html styles.css app.js manifest.webmanifest ios/www/
-cp icons/*.png icons/*.svg ios/www/icons/
+mkdir -p ios/Dopamine/www/icons ios/Sileo/www ios/Zebra/www
+cp index.html styles.css app.js manifest.webmanifest ios/Dopamine/www/
+cp icons/*.png icons/*.svg ios/Dopamine/www/icons/
+cp sileo/index.html sileo/styles.css sileo/app.js sileo/icon-180.png sileo/icon-192.png ios/Sileo/www/
+cp zebra/index.html zebra/styles.css zebra/app.js zebra/icon-180.png zebra/icon-192.png ios/Zebra/www/
 
 cd ios
 
