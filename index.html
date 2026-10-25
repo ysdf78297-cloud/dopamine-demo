@@ -44,6 +44,11 @@
       <span>Credits</span>
       <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
+    <button class="row" data-row="other">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span>Other</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </nav>
 
   <div class="spacer"></div>
@@ -53,6 +58,43 @@
     <span>Jailbreak</span>
   </button>
 </div>
+
+<div id="otherSheet" class="overlay hidden" aria-hidden="true">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><h3>Other</h3><button class="x" data-close="otherSheet">Done</button></div>
+    <button class="row2" id="unlockBoot">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+      <span>Unlock Bootloader</span>
+      <svg class="chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="row2" id="switchAndroid">
+      <svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span>Switch to Android</span>
+      <svg class="chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="unlockFlow" class="overlay system hidden" aria-hidden="true">
+  <div id="unlockWait" class="unlock-phase">
+    <span class="bigspin"></span>
+    <span>Please wait while we unlock the bootloader&hellip;</span>
+  </div>
+  <div id="unlockApple" class="unlock-phase hidden">
+    <img class="unlock-apple" src="./icons/apple.svg" alt="">
+    <span>Boot order unlocked</span>
+    <small>Verifying boot chain&hellip;</small>
+  </div>
+  <div id="unlockDone" class="unlock-phase hidden">
+    <div class="done-badge">&#10003;</div>
+    <h2>Bootloader unlocked successfully</h2>
+    <p>You can now flash unsigned images.</p>
+    <button id="unlockClose" class="btn primary">Done</button>
+  </div>
+</div>
+
+<div id="toasts" class="toasts"></div>
 
 <div id="picker" class="overlay hidden" aria-hidden="true">
   <div class="sheet">

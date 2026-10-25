@@ -20,6 +20,12 @@
   const creditsSheet = $("creditsSheet");
   const respring = $("respring");
   const userspace = $("userspace");
+  const otherSheet = $("otherSheet");
+  const unlockFlow = $("unlockFlow");
+  const unlockWait = $("unlockWait");
+  const unlockApple = $("unlockApple");
+  const unlockDone = $("unlockDone");
+  const toasts = $("toasts");
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -284,11 +290,63 @@
     userspace.classList.add("hidden");
   }
 
+  let unlockRun = 0;
+
+  async function runUnlock() {
+    const id = ++unlockRun;
+    otherSheet.classList.add("hidden");
+    unlockFlow.classList.remove("hidden");
+    unlockWait.classList.remove("hidden");
+    unlockApple.classList.add("hidden");
+    unlockDone.classList.add("hidden");
+
+    await sleep(2500);
+    if (id !== unlockRun) return;
+    unlockWait.classList.add("hidden");
+
+    await sleep(3000);
+    if (id !== unlockRun) return;
+    unlockApple.classList.remove("hidden");
+
+    await sleep(10000);
+    if (id !== unlockRun) return;
+    unlockApple.classList.add("hidden");
+
+    await sleep(10000);
+    if (id !== unlockRun) return;
+    unlockDone.classList.remove("hidden");
+  }
+
+  function closeUnlock() {
+    unlockRun++;
+    unlockFlow.classList.add("hidden");
+    unlockWait.classList.add("hidden");
+    unlockApple.classList.add("hidden");
+    unlockDone.classList.add("hidden");
+  }
+
+  function showToast(text) {
+    const item = document.createElement("div");
+    item.className = "toast-item";
+    item.textContent = text;
+    toasts.appendChild(item);
+
+    setTimeout(() => {
+      item.classList.add("out");
+      setTimeout(() => item.remove(), 240);
+    }, 2000);
+  }
+
+  $("unlockBoot").addEventListener("click", runUnlock);
+  $("switchAndroid").addEventListener("click", () => showToast("Coming soon"));
+  $("unlockClose").addEventListener("click", closeUnlock);
+
   const actions = {
     settings: () => settingsSheet.classList.remove("hidden"),
     credits: () => creditsSheet.classList.remove("hidden"),
     respring: runRespring,
-    userspace: runUserspace
+    userspace: runUserspace,
+    other: () => otherSheet.classList.remove("hidden")
   };
 
   document.querySelectorAll(".menu .row").forEach((row) => {
