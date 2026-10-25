@@ -834,36 +834,50 @@ body {
 .switch-stage {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
 }
 
 .switch-apple {
-  width: 86px;
-  height: 86px;
-  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
 }
 
 .switch-log {
-  width: 100%;
-  margin: 22px 0 0;
-  max-height: 52vh;
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 44%;
+  margin: 0;
+  padding: 10px 0;
   overflow: hidden;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 9px;
-  line-height: 1.5;
+  font-size: 8.5px;
+  line-height: 1.45;
   color: #ffffff;
   white-space: pre;
   text-align: left;
 }
 
 .switch-logo {
-  width: 120px;
-  height: 120px;
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 84px;
+  height: 84px;
+  transform: translate(-50%, -50%);
   object-fit: contain;
+}
+
+#switchThanksStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
 }
 
 .switch-stage h2 {

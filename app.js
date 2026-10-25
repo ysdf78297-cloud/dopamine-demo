@@ -361,6 +361,28 @@
     "starting recovery"
   ];
 
+  async function flicker(id, first, second, totalMs) {
+    const end = performance.now() + totalMs;
+    let i = 0;
+
+    while (performance.now() < end) {
+      switchLogo.src = i % 2 === 0 ? first : second;
+      i++;
+
+      let wait = 110 + Math.random() * 260;
+      const roll = Math.random();
+      if (roll < 0.12) wait = 35 + Math.random() * 50;
+      else if (roll < 0.2) wait = 320 + Math.random() * 220;
+
+      const remaining = end - performance.now();
+      if (remaining <= 0) break;
+      await sleep(Math.max(16, Math.min(wait, remaining)));
+      if (id !== switchRun) return false;
+    }
+
+    return true;
+  }
+
   async function runSwitch() {
     const id = ++switchRun;
     switchFlow.classList.remove("hidden");
@@ -380,6 +402,7 @@
       const message = SWITCH_MESSAGES[Math.floor(Math.random() * SWITCH_MESSAGES.length)];
       switchLog.textContent += "[" + t.toFixed(5) + "] " + message + "\n";
       if (switchLog.textContent.length > 4200) switchLog.textContent = switchLog.textContent.slice(-3000);
+      switchLog.scrollTop = switchLog.scrollHeight;
     }, 55);
 
     await sleep(4000);
@@ -396,11 +419,8 @@
     switchBootStage.classList.add("hidden");
     switchLogoStage.classList.remove("hidden");
 
-    for (let i = 0; i < 16; i++) {
-      switchLogo.src = i % 2 === 0 ? "./icons/android-logo.svg" : "./icons/apple.svg";
-      await sleep(250);
-      if (id !== switchRun) return;
-    }
+    if (!await flicker(id, "./icons/apple.svg", "./icons/linux-logo.svg", 6000)) return;
+    if (!await flicker(id, "./icons/apple.svg", "./icons/android-logo.svg", 4000)) return;
 
     switchLogo.src = "./icons/android-logo.svg";
     await sleep(1200);
