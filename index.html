@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Dopamine</title>
+<meta name="theme-color" content="#0b0b0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dopamine">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div id="app">
+  <header class="brand">
+    <img class="brand-icon" src="./icons/icon-192.png" alt="">
+    <div class="brand-text">
+      <h1>Dopamine</h1>
+      <p>Jailbreak for iOS 15.0 – 27.0</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row"><span>Device</span><b>iPhone 15 Pro</b></div>
+    <div class="row"><span>iOS</span><b>27.0</b></div>
+    <div class="row"><span>Processor</span><b>A17 Pro · arm64e</b></div>
+    <div class="row"><span>Status</span><span class="pill"><i></i>Supported</span></div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <button id="jailbreak" class="cta">Jailbreak</button>
+  <p class="footnote">iOS 27.0 · build 24A335</p>
+</div>
+
+<div id="console" class="overlay hidden" aria-hidden="true">
+  <div class="console-sheet">
+    <div class="console-head">
+      <span class="spinner"></span>
+      <span id="consoleTitle">Running exploit</span>
+    </div>
+    <pre id="log"></pre>
+    <div class="progress"><div id="fill"></div></div>
+  </div>
+</div>
+
+<div id="boot" class="overlay hidden" aria-hidden="true">
+  <div class="boot-log"><div id="bootLog"></div></div>
+  <div class="boot-center">
+    <span class="check" id="checkLeft">&#10003;</span>
+    <span class="apple">&#xF8FF;</span>
+    <span class="check" id="checkRight">&#10003;</span>
+  </div>
+</div>
+
+<div id="done" class="overlay hidden" aria-hidden="true">
+  <div class="done-card">
+    <div class="done-badge">&#10003;</div>
+    <h2>This was a fake demo</h2>
+    <p>Thank you for doing this.</p>
+    <p class="small">Nothing on this iPhone was changed.</p>
+    <button id="closeDone">Done</button>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
