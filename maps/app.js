@@ -29,7 +29,8 @@
     shadowUrl: "vendor/images/marker-shadow.png"
   });
 
-  const map = L.map("map", { zoomControl: false, worldCopyJump: true }).setView([20, 0], 2);
+  const map = L.map("map", { zoomControl: false, worldCopyJump: true, attributionControl: true }).setView([20, 0], 2);
+  map.attributionControl.setPrefix(false);
 
   let styleName = load("mapStyle", "satellite");
   if (!STYLES[styleName]) styleName = "colored";
@@ -275,6 +276,41 @@
     try { localStorage.setItem("recentMaps", JSON.stringify(list.slice(0, 6))); } catch (e) {}
   }
 
+  let currentPlace = null;
+
+  function openPlace(place) {
+    currentPlace = place;
+    $("placeName").textContent = place.name;
+    const coords = parseFloat(place.lat).toFixed(5) + ", " + parseFloat(place.lon).toFixed(5);
+    $("placeMeta").textContent = place.display_name + "\n" + coords;
+    $("placeDesc").textContent = "Loading details\u2026";
+    $("placeReviews").textContent = "Reviews aren\u2019t available for this place.";
+    $("placeImage").style.backgroundImage = "none";
+
+    $("searchSheet").classList.add("hidden");
+    $("placeSheet").classList.remove("hidden");
+
+    const wiki = place.extratags && place.extratags.wikipedia;
+    if (!wiki) {
+      $("placeDesc").textContent = "No description available for this place.";
+      return;
+    }
+
+    const title = wiki.split(":").pop();
+    fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title.replace(/ /g, "_")))
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.extract) $("placeDesc").textContent = data.extract;
+        else $("placeDesc").textContent = "No description available for this place.";
+        if (data.thumbnail && data.thumbnail.source) {
+          $("placeImage").style.backgroundImage = "url('" + data.thumbnail.source + "')";
+        }
+      })
+      .catch(() => {
+        $("placeDesc").textContent = "No description available for this place.";
+      });
+  }
+
   function renderRecent() {
     const box = $("recent");
     box.innerHTML = "";
@@ -336,22 +372,34 @@
     let list = [];
 
     if (navigator.onLine) {
-      try {
-        const origin = L.latLng(start);
-        const url = "https://router.project-osrm.org/route/v1/" + mode + "/" +
-          origin.lng.toFixed(6) + "," + origin.lat.toFixed(6) + ";" +
-          latlng[1].toFixed(6) + "," + latlng[0].toFixed(6) +
-          "?alternatives=true&overview=full&geometries=geojson&steps=true&annotations=speed";
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.routes && data.routes.length) list = data.routes;
-      } catch (e) {
-        list = [];
+      const origin = L.latLng(start);
+      const base = "https://router.project-osrm.org/route/v1/" + mode + "/" +
+        origin.lng.toFixed(6) + "," + origin.lat.toFixed(6) + ";" +
+        latlng[1].toFixed(6) + "," + latlng[0].toFixed(6);
+
+      const urls = [
+        base + "?alternatives=true&overview=full&geometries=geojson&steps=true&annotations=speed",
+        base + "?alternatives=true&overview=full&geometries=geojson&steps=true",
+        base + "?overview=full&geometries=geojson"
+      ];
+
+      for (const url of urls) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data.routes && data.routes.length) {
+            list = data.routes;
+            break;
+          }
+        } catch (e) {
+        }
       }
     }
 
     if (!list.length) {
       list = [offlineRoute(start, latlng)];
+      showAlert("No road route available \u2014 direct estimate", "#b26a00");
     }
 
     routes = list.slice(0, 3);
@@ -360,7 +408,6 @@
     fitRoutes();
     renderRoutes(name);
   }
-
   async function pickDestination(latlng, name) {
     closeSearchSheet();
     hideGlobe();
@@ -452,7 +499,7 @@
 
     try {
       const res = await fetch(
-        "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=7&q=" + encodeURIComponent(trimmed),
+        "https://nominatim.openstreetmap.org/search?format=jsonv2&extratags=1&limit=7&q=" + encodeURIComponent(trimmed),
         { headers: { Accept: "application/json" } }
       );
       const list = await res.json();
@@ -468,8 +515,9 @@
 
       list.forEach((place) => {
         const title = place.name || place.display_name.split(",")[0];
-        box.appendChild(resultButton(title, place.display_name, () => {
-          pickDestination([parseFloat(place.lat), parseFloat(place.lon)], title);
+        const coords = parseFloat(place.lat).toFixed(4) + ", " + parseFloat(place.lon).toFixed(4);
+        box.appendChild(resultButton(title, place.display_name + " \u00b7 " + coords, () => {
+          openPlace(place);
         }));
       });
     } catch (e) {
@@ -598,7 +646,13 @@
     const latlng = [c.latitude, c.longitude];
     nav.lastFix = Date.now();
     navMarker.setLatLng(latlng);
-    map.panTo(latlng, { animate: false, noMoveStart: true });
+
+    if (!nav.following) {
+      map.setView(latlng, 18, { animate: false });
+      nav.following = true;
+    } else {
+      map.panTo(latlng, { animate: false, noMoveStart: true });
+    }
 
     const progress = nearestFraction(latlng);
     nav.progress = progress;
@@ -726,6 +780,16 @@
       nav.stepCum.push(accDist);
     });
 
+    nav.following = true;
+    nav.idleTimer = setInterval(() => {
+      if (!nav) return;
+      if (nav.lastFix && Date.now() - nav.lastFix > 3000 && nav.following) {
+        nav.following = false;
+        fitRoutes();
+        map.setZoom(14, { animate: true });
+      }
+    }, 1000);
+
     let limit = null;
     const annotation = route.legs && route.legs[0] && route.legs[0].annotation;
     nav.speeds = (annotation && annotation.speed) || [];
@@ -755,7 +819,7 @@
     $("sheet").classList.add("hidden");
     $("navBanner").classList.remove("hidden");
     $("navCancel").textContent = "Cancel";
-    map.flyTo(start ? L.latLng(start) : coords[0], 16, { duration: 0.9 });
+    map.flyTo(start ? L.latLng(start) : coords[0], 18, { duration: 0.9 });
 
     if (nav.steps.length) {
       say("Starting navigation. " + stepText(nav.steps[0]));
@@ -784,6 +848,7 @@
     const running = nav;
     nav = null;
     clearTimeout(running.waitTimer);
+    clearInterval(running.idleTimer);
     if (running.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(running.watch);
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
@@ -888,6 +953,16 @@
   });
 
   document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+
+  $("placeGo").addEventListener("click", () => {
+    if (!currentPlace) return;
+    $("placeSheet").classList.add("hidden");
+    pickDestination([parseFloat(currentPlace.lat), parseFloat(currentPlace.lon)], currentPlace.name);
+  });
+  $("placeClose").addEventListener("click", () => $("placeSheet").classList.add("hidden"));
+  $("placeSheet").addEventListener("click", (event) => {
+    if (event.target === $("placeSheet")) $("placeSheet").classList.add("hidden");
+  });
 
   $("go").addEventListener("click", startNav);
   $("navCancel").addEventListener("click", stopNav);
