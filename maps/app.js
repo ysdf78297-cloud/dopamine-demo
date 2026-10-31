@@ -10,6 +10,33 @@
   const markersG = $("markers");
   const labelsG = $("labels");
 
+  const view = { x: 0, y: 0, w: 1000, h: 1600 };
+
+  function applyView() {
+    map.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
+  }
+
+  function clampView() {
+    view.w = Math.max(240, Math.min(1000, view.w));
+    view.h = view.w * 1.6;
+    view.x = Math.max(0, Math.min(1000 - view.w, view.x));
+    view.y = Math.max(0, Math.min(1600 - view.h, view.y));
+    applyView();
+  }
+
+  function zoomAt(factor, px, py) {
+    const rect = map.getBoundingClientRect();
+    const fx = Math.max(0, Math.min(1, (px - rect.left) / rect.width));
+    const fy = Math.max(0, Math.min(1, (py - rect.top) / rect.height));
+    const mx = view.x + fx * view.w;
+    const my = view.y + fy * view.h;
+    view.w = view.w / factor;
+    view.h = view.w * 1.6;
+    view.x = mx - fx * view.w;
+    view.y = my - fy * view.h;
+    clampView();
+  }
+
   const VX = [120, 300, 480, 660, 840];
   const HY = [160, 360, 560, 760, 960, 1160, 1360];
   const MILES_PER_PX = 0.011;
@@ -273,7 +300,7 @@
 
     const best = routes[0];
     $("destName").textContent = currentDest.name;
-    $("destSub").textContent = "Fastest " + formatMinutes(selectedRoute.minutes) + " \u00b7 " + formatMiles(selectedRoute.miles) + " \u00b7 offline";
+    $("destSub").textContent = "Fastest " + formatMinutes(selectedRoute.minutes) + " \u00b7 " + formatMiles(selectedRoute.miles) + " \u00b7 " + (navigator.onLine ? "online" : "offline");
     $("destName").style.color = "#202124";
     $("destSub").style.color = "#70757a";
     void best;
@@ -359,13 +386,22 @@
   function setCamera(x, y) {
     const w = 620;
     const h = 900;
-    let cx = Math.min(1000 - w / 2, Math.max(w / 2, x));
-    let cy = Math.min(1600 - h / 2, Math.max(h / 2, y));
-    map.setAttribute("viewBox", (cx - w / 2) + " " + (cy - h / 2) + " " + w + " " + h);
+    const cx = Math.min(1000 - w / 2, Math.max(w / 2, x));
+    const cy = Math.min(1600 - h / 2, Math.max(h / 2, y));
+    view.w = w;
+    view.h = h;
+    view.x = cx - w / 2;
+    view.y = cy - h / 2;
+    applyView();
   }
 
   function resetCamera() {
-    map.setAttribute("viewBox", "0 0 1000 1600");
+    const n = nodes.get(START);
+    view.w = 620;
+    view.h = view.w * 1.6;
+    view.x = n.x - view.w / 2;
+    view.y = n.y - view.h / 2;
+    clampView();
   }
 
   function startNav() {
@@ -446,4 +482,148 @@
   $("navCancel").addEventListener("click", stopNav);
 
   renderResults("");
+
+  (function initView() {
+    const n = nodes.get(START);
+    view.w = 620;
+    view.h = view.w * 1.6;
+    view.x = n.x - view.w / 2;
+    view.y = n.y - view.h / 2;
+    clampView();
+  })();
+
+  /* ---------- pan and zoom ---------- */
+
+  const pointers = new Map();
+  let dragStart = null;
+  let pinchStart = null;
+  const mapWrap = $("mapWrap");
+
+  mapWrap.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("#topbar, #mapControls, #netChip, #sheet, #searchSheet, #perm")) return;
+    mapWrap.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.size === 1) {
+      dragStart = { x: event.clientX, y: event.clientY, vx: view.x, vy: view.y };
+    } else if (pointers.size === 2) {
+      const pts = Array.from(pointers.values());
+      pinchStart = {
+        dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
+        w: view.w,
+        cx: view.x + view.w / 2,
+        cy: view.y + view.h / 2
+      };
+      dragStart = null;
+    }
+  });
+
+  mapWrap.addEventListener("pointermove", (event) => {
+    if (!pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const rect = map.getBoundingClientRect();
+
+    if (pointers.size === 1 && dragStart) {
+      const scale = view.w / rect.width;
+      view.x = dragStart.vx - (event.clientX - dragStart.x) * scale;
+      view.y = dragStart.vy - (event.clientY - dragStart.y) * scale;
+      clampView();
+    } else if (pointers.size === 2 && pinchStart) {
+      const pts = Array.from(pointers.values());
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const factor = dist / Math.max(1, pinchStart.dist);
+      view.w = Math.max(240, Math.min(1000, pinchStart.w / factor));
+      view.h = view.w * 1.6;
+      view.x = pinchStart.cx - view.w / 2;
+      view.y = pinchStart.cy - view.h / 2;
+      clampView();
+    }
+  });
+
+  function endPointer(event) {
+    pointers.delete(event.pointerId);
+    if (pointers.size === 0) {
+      dragStart = null;
+      pinchStart = null;
+    } else if (pointers.size === 1) {
+      const p = Array.from(pointers.values())[0];
+      dragStart = { x: p.x, y: p.y, vx: view.x, vy: view.y };
+      pinchStart = null;
+    }
+  }
+
+  mapWrap.addEventListener("pointerup", endPointer);
+  mapWrap.addEventListener("pointercancel", endPointer);
+
+  mapWrap.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    zoomAt(event.deltaY < 0 ? 1.15 : 0.87, event.clientX, event.clientY);
+  }, { passive: false });
+
+  mapWrap.addEventListener("dblclick", (event) => {
+    if (event.target.closest("#topbar, #mapControls, #sheet, #searchSheet, #perm")) return;
+    zoomAt(1.6, event.clientX, event.clientY);
+  });
+
+  $("zoomIn").addEventListener("click", () => {
+    const r = map.getBoundingClientRect();
+    zoomAt(1.3, r.left + r.width / 2, r.top + r.height / 2);
+  });
+  $("zoomOut").addEventListener("click", () => {
+    const r = map.getBoundingClientRect();
+    zoomAt(0.77, r.left + r.width / 2, r.top + r.height / 2);
+  });
+
+  $("locate").addEventListener("click", () => {
+    const n = nodes.get(START);
+    view.w = 460;
+    view.h = view.w * 1.6;
+    view.x = n.x - view.w / 2;
+    view.y = n.y - view.h / 2;
+    clampView();
+  });
+
+  /* ---------- permission / network ---------- */
+
+  const perm = $("perm");
+
+  function showPerm() {
+    perm.classList.remove("hidden");
+  }
+
+  function askLocation() {
+    if (!("geolocation" in navigator)) {
+      showPerm();
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      () => {},
+      (error) => {
+        if (error.code === 1) showPerm();
+      },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  }
+
+  $("permLater").addEventListener("click", () => perm.classList.add("hidden"));
+  $("openSettings").addEventListener("click", () => {
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openSettings) {
+      window.webkit.messageHandlers.openSettings.postMessage("open");
+    } else {
+      window.location.href = "app-settings:";
+    }
+  });
+
+  function updateNet() {
+    const online = navigator.onLine;
+    $("netChip").classList.toggle("off", !online);
+    $("netText").textContent = online ? "Online" : "Offline";
+  }
+
+  window.addEventListener("online", updateNet);
+  window.addEventListener("offline", updateNet);
+  updateNet();
+
+  askLocation();
 })();

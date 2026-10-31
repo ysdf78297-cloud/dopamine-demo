@@ -436,3 +436,156 @@ body {
 .routeAnimate {
   transition: stroke-dashoffset 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
 }
+
+#netChip {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 68px);
+  right: 14px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 12px rgba(32, 33, 36, 0.12);
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f6368;
+}
+
+.netdot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34a853;
+}
+
+#netChip.off .netdot {
+  background: #9aa0a6;
+}
+
+#mapControls {
+  position: absolute;
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom) + 250px);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#mapControls button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: #3c4043;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(32, 33, 36, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+#mapControls button:active {
+  background: #f1f3f4;
+}
+
+#mapControls button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+#perm {
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 25, 35, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.permCard {
+  width: 100%;
+  max-width: 340px;
+  padding: 26px 22px 18px;
+  border-radius: 22px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: cardIn 0.3s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+
+@keyframes cardIn {
+  from { transform: translateY(16px) scale(0.97); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.permIcon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #e8f0fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permIcon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: #1a73e8;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.permCard h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.permCard p {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #5f6368;
+}
+
+.permBtn {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  background: #1a73e8;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  touch-action: manipulation;
+}
+
+.permGhost {
+  width: 100%;
+  height: 42px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #5f6368;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}

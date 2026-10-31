@@ -31,6 +31,16 @@
       </button>
     </div>
 
+    <div id="netChip"><span class="netdot"></span><span id="netText">Online</span></div>
+
+    <div id="mapControls">
+      <button id="zoomIn" aria-label="Zoom in">+</button>
+      <button id="zoomOut" aria-label="Zoom out">&minus;</button>
+      <button id="locate" aria-label="My location">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2.5"/></svg>
+      </button>
+    </div>
+
     <div id="navBanner" class="hidden">
       <div class="navInfo"><b id="navEta">-- min</b><span id="navMiles">-- mi</span></div>
       <button id="navCancel" class="navCancel">Cancel</button>
@@ -41,7 +51,7 @@
     <div class="grab"></div>
     <div id="emptyState">
       <b>Offline maps</b>
-      <span>Tap the search bar to pick a destination. All routes are calculated on this device.</span>
+      <span>Tap the search bar to pick a destination. Routes are calculated on this device.</span>
     </div>
 
     <div id="routeState" class="hidden">
@@ -53,6 +63,18 @@
         <button id="go" class="go">Go</button>
       </div>
       <div id="alts" class="alts"></div>
+    </div>
+  </div>
+
+  <div id="perm" class="overlay hidden">
+    <div class="permCard">
+      <div class="permIcon">
+        <svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      </div>
+      <h3>Location access needed</h3>
+      <p>Maps V2 can't track your location. Please allow location access in the Settings app.</p>
+      <button id="openSettings" class="permBtn">Open Settings</button>
+      <button id="permLater" class="permGhost">Not now</button>
     </div>
   </div>
 

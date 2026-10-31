@@ -38,6 +38,8 @@
 	<false/>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Maps V2 uses your location to show where you are and to calculate routes.</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 </dict>
