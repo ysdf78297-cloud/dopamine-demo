@@ -17,6 +17,7 @@
 
 <div id="maps">
   <div id="map"></div>
+  <div id="globe" class="hidden"><canvas id="globeCanvas"></canvas><div class="globeHint">Drag to spin · tap to open the map</div></div>
 
   <div id="topbar">
     <button id="searchBtn" class="search">
@@ -25,7 +26,10 @@
     </button>
   </div>
 
-  <div id="netChip"><span class="netdot"></span><span id="netText">Online</span></div>
+  <div id="coordChip" class="hidden">
+    <span id="coordText">--</span>
+    <button id="coordGo">Directions</button>
+  </div>
 
   <div id="mapControls">
     <button id="zoomIn" aria-label="Zoom in">+</button>
@@ -36,6 +40,9 @@
     <button id="locate" aria-label="My location">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2.5"/></svg>
     </button>
+    <button id="settingsBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 8.86a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.87 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
   </div>
 
   <div id="navBanner" class="hidden">
@@ -43,22 +50,30 @@
     <button id="navCancel" class="navCancel">Cancel</button>
   </div>
 
-  <div id="sheet" class="sheet">
-    <div class="grab"></div>
-    <div id="emptyState">
-      <b>Maps V2</b>
-      <span>Search for a place to get the fastest route. Drag the map to explore the world.</span>
-    </div>
+  <div id="alert" class="hidden"><span id="alertText">Alert</span></div>
 
-    <div id="routeState" class="hidden">
-      <div class="destRow">
-        <div class="destIcon">
-          <svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        </div>
-        <div class="destText"><b id="destName">Destination</b><span id="destSub">Route</span></div>
-        <button id="go" class="go">Go</button>
+  <div id="speedSign" class="hidden"><span>SPEED LIMIT</span><b id="speedLimit">30</b></div>
+  <div id="warningSign" class="hidden"><b>!</b><span id="warningText">No parking</span></div>
+  <div id="speedo" class="hidden"><b id="speedValue">0</b><span>mph</span></div>
+
+  <div id="sheet" class="sheet">
+    <div class="grab" id="sheetGrab"></div>
+    <div id="sheetBody">
+      <div id="emptyState">
+        <b>Maps V2</b>
+        <span>Search for a place to get the fastest route. Drag the map to explore the world.</span>
       </div>
-      <div id="alts" class="alts"></div>
+
+      <div id="routeState" class="hidden">
+        <div class="destRow">
+          <div class="destIcon">
+            <svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          </div>
+          <div class="destText"><b id="destName">Destination</b><span id="destSub">Route</span></div>
+          <button id="go" class="go">Go</button>
+        </div>
+        <div id="alts" class="alts"></div>
+      </div>
     </div>
   </div>
 
@@ -78,15 +93,31 @@
     <div class="searchPanel">
       <div class="grab"></div>
       <div class="inputRow">
-        <input id="searchInput" type="text" placeholder="Search places" autocomplete="off">
+        <input id="searchInput" type="text" placeholder="Search places or coordinates" autocomplete="off">
         <button id="closeSearch">Cancel</button>
       </div>
       <div id="results"></div>
     </div>
   </div>
+
+  <div id="settingsSheet" class="overlay hidden">
+    <div class="searchPanel">
+      <div class="grab"></div>
+      <div class="sheetHead"><h3>Settings</h3><button id="closeSettings">Done</button></div>
+      <div class="settingLabel">Appearance</div>
+      <button class="opt" data-style="colored"><span>Default</span><span class="check">&#10003;</span></button>
+      <button class="opt" data-style="mono"><span>All map</span><span class="check">&#10003;</span></button>
+      <button class="opt" data-style="satellite"><span>Satellite</span><span class="check">&#10003;</span></button>
+      <div class="settingLabel">Navigation</div>
+      <div class="toggleRow"><span>Real-time alerts</span><button id="toggleAlerts" class="switch on"></button></div>
+      <div class="toggleRow"><span>Show coordinates</span><button id="toggleCoords" class="switch"></button></div>
+      <div class="toggleRow"><span>Show speed</span><button id="toggleSpeed" class="switch on"></button></div>
+    </div>
+  </div>
 </div>
 
 <script src="./vendor/leaflet.js"></script>
+<script src="./vendor/three.min.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

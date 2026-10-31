@@ -29,3 +29,9 @@ Xcode signs the app with your own Apple ID, no Sideloadly needed.
 6. First launch: iPhone **Settings > General > VPN & Device Management** > Trust your Apple ID.
 
 The free signing lasts 7 days; press Run again to renew it.
+## Privacy (Maps V2)
+
+No location is stored in this repository or sent to GitHub. The app keeps map style and toggle
+preferences in local storage only; coordinates are used on-device and, when online, sent to the
+OpenStreetMap routing/geocoding services only to calculate the route you asked for. No analytics,
+no accounts, no tracking.
