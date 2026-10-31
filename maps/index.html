@@ -74,7 +74,16 @@
     </div>
   </div>
 
-  <div id="perm" class="overlay hidden">
+  <div id="noRoute" class="overlay hidden">
+  <div class="permCard">
+    <h3>No route available</h3>
+    <p>No road route could be found. Do you want directions to the nearest airport?</p>
+    <button id="airportYes" class="permBtn">Go to nearest airport</button>
+    <button id="airportNo" class="permGhost">Use direct estimate</button>
+  </div>
+</div>
+
+<div id="perm" class="overlay hidden">
     <div class="permCard">
       <div class="permIcon">
         <svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>

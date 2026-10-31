@@ -29,6 +29,24 @@
     shadowUrl: "vendor/images/marker-shadow.png"
   });
 
+  const NEARBY = {
+    "ice cream": "amenity=ice_cream",
+    "icecream": "amenity=ice_cream",
+    "coffee": "amenity=cafe",
+    "cafe": "amenity=cafe",
+    "restaurant": "amenity=restaurant",
+    "food": "amenity=restaurant",
+    "pizza": "amenity=restaurant][cuisine~pizza",
+    "gas": "amenity=fuel",
+    "fuel": "amenity=fuel",
+    "pharmacy": "amenity=pharmacy",
+    "atm": "amenity=atm",
+    "bank": "amenity=bank",
+    "hotel": "tourism=hotel",
+    "park": "leisure=park",
+    "airport": "aeroway=aerodrome"
+  };
+
   const map = L.map("map", { zoomControl: false, worldCopyJump: true, attributionControl: true }).setView([20, 0], 2);
   map.attributionControl.setPrefix(false);
 
@@ -107,7 +125,16 @@
     else destMarker.setLatLng(latlng);
   }
 
-  function formatMin(seconds) { return Math.max(1, Math.round(seconds / 60)) + " min"; }
+  function formatMin(seconds) {
+    const mins = Math.max(1, Math.round(seconds / 60));
+    if (mins < 60) return mins + " min";
+    const hours = Math.floor(mins / 60);
+    const rest = mins % 60;
+    if (hours < 24) return hours + " hr" + (rest ? " " + rest + " min" : "");
+    const days = Math.floor(hours / 24);
+    const restHours = hours % 24;
+    return days + (days === 1 ? " day" : " days") + (restHours ? " " + restHours + " hr" : "");
+  }
   function formatMi(meters) { return (meters / 1609.34).toFixed(1) + " mi"; }
 
   /* ---------- globe ---------- */
@@ -363,6 +390,8 @@
     $("sheet").classList.remove("hidden", "collapsed");
   }
 
+  let pendingDestination = null;
+
   async function fetchRoutes(latlng, name) {
     $("routeState").classList.add("hidden");
     $("sheet").classList.add("hidden");
@@ -396,8 +425,9 @@
     }
 
     if (!list.length) {
-      list = [offlineRoute(start, latlng)];
-      showAlert("No road route available \u2014 direct estimate", "#b26a00");
+      $("noRoute").classList.remove("hidden");
+      pendingDestination = { latlng, name };
+      return;
     }
 
     routes = list.slice(0, 3);
@@ -430,6 +460,37 @@
   }
 
   /* ---------- search ---------- */
+
+  function placeDistanceMeters(lat, lon) {
+    const origin = start ? L.latLng(start) : map.getCenter();
+    return map.distance(origin, [lat, lon]);
+  }
+
+  function nearestAirport() {
+    if (!navigator.onLine) {
+      showAlert("No internet to find an airport", "#b26a00");
+      return;
+    }
+
+    const origin = start ? L.latLng(start) : map.getCenter();
+    const d = 0.7;
+    const viewbox = [origin.lng - d, origin.lat + d, origin.lng + d, origin.lat - d].join(",");
+
+    fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=20&q=" + encodeURIComponent("airport") +
+      "&viewbox=" + viewbox + "&bounded=0", { headers: { Accept: "application/json" } })
+      .then((r) => r.json())
+      .then((list) => {
+        if (!list || !list.length) {
+          showAlert("No airport found nearby", "#b26a00");
+          return;
+        }
+        list.sort((a, b) => placeDistanceMeters(a.lat, a.lon) - placeDistanceMeters(b.lat, b.lon));
+        const airport = list[0];
+        pickDestination([parseFloat(airport.lat), parseFloat(airport.lon)],
+          airport.name || airport.display_name.split(",")[0]);
+      })
+      .catch(() => showAlert("No airport found nearby", "#b26a00"));
+  }
 
   function hint(text) {
     const div = document.createElement("div");
@@ -484,6 +545,47 @@
       }
     }
 
+    if (navigator.onLine) {
+      const origin = start ? L.latLng(start) : map.getCenter();
+      box.appendChild(hint("Searching nearby\u2026"));
+
+      try {
+        const res = await fetch(
+          "https://photon.komoot.io/api/?q=" + encodeURIComponent(trimmed) +
+            "&lat=" + origin.lat + "&lon=" + origin.lng + "&limit=15&lang=en"
+        );
+        const data = await res.json();
+        const places = (data.features || []).map((f) => {
+          const p = f.properties || {};
+          const c = f.geometry && f.geometry.coordinates;
+          if (!c) return null;
+          const name = p.name || (p.street ? p.street + (p.housenumber ? " " + p.housenumber : "") : "Place");
+          const parts = [p.street, p.housenumber, p.city, p.state, p.country].filter(Boolean);
+          return {
+            name,
+            display_name: parts.join(", ") || p.osm_value || "Nearby",
+            lat: c[1],
+            lon: c[0],
+            extratags: p
+          };
+        }).filter(Boolean);
+
+        if (places.length) {
+          places.sort((a, b) => map.distance(origin, [a.lat, a.lon]) - map.distance(origin, [b.lat, b.lon]));
+          box.innerHTML = "";
+          places.forEach((place) => {
+            const meters = map.distance(origin, [place.lat, place.lon]);
+            const dist = meters > 160 ? (meters / 1609.34).toFixed(1) + " mi" : Math.round(meters) + " m";
+            box.appendChild(resultButton(place.name, dist + " \u00b7 " + place.display_name, () => openPlace(place)));
+          });
+          return;
+        }
+      } catch (e) {
+      }
+
+      box.innerHTML = "";
+    }
+
     if (!navigator.onLine) {
       const center = map.getCenter();
       box.appendChild(resultButton(trimmed, "Offline \u00b7 use map center (" + center.lat.toFixed(4) + ", " + center.lng.toFixed(4) + ")", () => {
@@ -496,8 +598,11 @@
     box.appendChild(hint("Searching\u2026"));
 
     try {
+      const origin = start ? L.latLng(start) : map.getCenter();
+      const viewbox = [origin.lng - 0.6, origin.lat + 0.6, origin.lng + 0.6, origin.lat - 0.6].join(",");
       const res = await fetch(
-        "https://nominatim.openstreetmap.org/search?format=jsonv2&extratags=1&limit=7&q=" + encodeURIComponent(trimmed),
+        "https://nominatim.openstreetmap.org/search?format=jsonv2&extratags=1&limit=10&q=" + encodeURIComponent(trimmed) +
+          "&viewbox=" + viewbox + "&bounded=0",
         { headers: { Accept: "application/json" } }
       );
       const list = await res.json();
@@ -511,10 +616,14 @@
         return;
       }
 
+      list.sort((a, b) => map.distance(origin, [parseFloat(a.lat), parseFloat(a.lon)]) -
+        map.distance(origin, [parseFloat(b.lat), parseFloat(b.lon)]));
+
       list.forEach((place) => {
         const title = place.name || place.display_name.split(",")[0];
-        const coords = parseFloat(place.lat).toFixed(4) + ", " + parseFloat(place.lon).toFixed(4);
-        box.appendChild(resultButton(title, place.display_name + " \u00b7 " + coords, () => {
+        const meters = map.distance(origin, [parseFloat(place.lat), parseFloat(place.lon)]);
+        const dist = meters > 160 ? (meters / 1609.34).toFixed(1) + " mi" : Math.round(meters) + " m";
+        box.appendChild(resultButton(title, dist + " \u00b7 " + place.display_name, () => {
           openPlace(place);
         }));
       });
@@ -837,6 +946,10 @@
     nav.limit = limit;
 
     $("maps").classList.add("navigating");
+
+    if ("wakeLock" in navigator) {
+      navigator.wakeLock.request("screen").then((lock) => { if (nav) nav.wakeLock = lock; }).catch(() => {});
+    }
     $("maps").classList.remove("ui");
     $("speedValue").textContent = "0";
     if (speedOn) $("speedo").classList.remove("hidden");
@@ -881,6 +994,7 @@
     clearInterval(running.idleTimer);
     if (running.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(running.watch);
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (running.wakeLock) { try { running.wakeLock.release(); } catch (e) {} }
 
     if (navMarker) { navMarker.remove(); navMarker = null; }
     $("alert").classList.add("hidden");
@@ -983,6 +1097,20 @@
   });
 
   document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+
+  $("airportYes").addEventListener("click", () => {
+    $("noRoute").classList.add("hidden");
+    nearestAirport();
+  });
+  $("airportNo").addEventListener("click", () => {
+    $("noRoute").classList.add("hidden");
+    if (!pendingDestination) return;
+    routes = [offlineRoute(start, pendingDestination.latlng)];
+    selected = 0;
+    drawRoutes();
+    fitRoutes();
+    renderRoutes(pendingDestination.name);
+  });
 
   $("placeGo").addEventListener("click", () => {
     if (!currentPlace) return;
