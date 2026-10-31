@@ -52,18 +52,15 @@
 
   <div id="alert" class="hidden"><span id="alertText">Alert</span></div>
 
+  <div id="nextBanner" class="hidden"><b id="nextText">Continue straight</b></div>
+
   <div id="speedSign" class="hidden"><span>SPEED LIMIT</span><b id="speedLimit">30</b></div>
   <div id="warningSign" class="hidden"><b>!</b><span id="warningText">No parking</span></div>
   <div id="speedo" class="hidden"><b id="speedValue">0</b><span>mph</span></div>
 
-  <div id="sheet" class="sheet">
+  <div id="sheet" class="sheet hidden">
     <div class="grab" id="sheetGrab"></div>
     <div id="sheetBody">
-      <div id="emptyState">
-        <b>Maps V2</b>
-        <span>Search for a place to get the fastest route. Drag the map to explore the world.</span>
-      </div>
-
       <div id="routeState" class="hidden">
         <div class="destRow">
           <div class="destIcon">
@@ -96,6 +93,12 @@
         <input id="searchInput" type="text" placeholder="Search places or coordinates" autocomplete="off">
         <button id="closeSearch">Cancel</button>
       </div>
+      <div class="modes" id="modes">
+        <button class="mode active" data-mode="driving">Car</button>
+        <button class="mode" data-mode="bike">Bike</button>
+        <button class="mode" data-mode="foot">Walk</button>
+      </div>
+      <div id="recent"></div>
       <div id="results"></div>
     </div>
   </div>
@@ -109,7 +112,6 @@
       <button class="opt" data-style="mono"><span>All map</span><span class="check">&#10003;</span></button>
       <button class="opt" data-style="satellite"><span>Satellite</span><span class="check">&#10003;</span></button>
       <div class="settingLabel">Navigation</div>
-      <div class="toggleRow"><span>Real-time alerts</span><button id="toggleAlerts" class="switch on"></button></div>
       <div class="toggleRow"><span>Show coordinates</span><button id="toggleCoords" class="switch"></button></div>
       <div class="toggleRow"><span>Show speed</span><button id="toggleSpeed" class="switch on"></button></div>
     </div>
@@ -118,6 +120,7 @@
 
 <script src="./vendor/leaflet.js"></script>
 <script src="./vendor/three.min.js"></script>
+<script src="./vendor/earth-base64.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

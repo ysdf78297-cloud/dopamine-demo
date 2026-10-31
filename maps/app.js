@@ -31,7 +31,7 @@
 
   const map = L.map("map", { zoomControl: false, worldCopyJump: true }).setView([20, 0], 2);
 
-  let styleName = load("mapStyle", "colored");
+  let styleName = load("mapStyle", "satellite");
   if (!STYLES[styleName]) styleName = "colored";
   let tileLayer = null;
 
@@ -43,7 +43,11 @@
     tileLayer = L.tileLayer(style.url, {
       maxZoom: style.max,
       attribution: style.attribution,
-      subdomains: "abcd"
+      subdomains: "abcd",
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      keepBuffer: 4,
+      fadeAnimation: true
     }).addTo(map);
     map.getContainer().classList.toggle("mono", name === "mono");
     save("mapStyle", name);
@@ -66,9 +70,11 @@
   let navTimers = [];
   let searchTimer = null;
   let audioCtx = null;
-  let alertsOn = load("alerts", "1") === "1";
+
   let coordsOn = load("coords", "0") === "1";
   let speedOn = load("speed", "1") === "1";
+  let mode = load("travelMode", "driving");
+  let lastDest = null;
 
   /* ---------- markers ---------- */
 
@@ -90,8 +96,15 @@
     if (fly) map.flyTo(latlng, 15, { duration: 1.2 });
   }
 
+  const destIcon = L.divIcon({
+    className: "dest-pin",
+    html: '<div class="pin-head"></div>',
+    iconSize: [30, 42],
+    iconAnchor: [15, 40]
+  });
+
   function setDest(latlng) {
-    if (!destMarker) destMarker = L.marker(latlng).addTo(map);
+    if (!destMarker) destMarker = L.marker(latlng, { icon: destIcon }).addTo(map);
     else destMarker.setLatLng(latlng);
   }
 
@@ -117,7 +130,12 @@
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    globeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    try {
+      globeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    } catch (e) {
+      $("globe").classList.add("hidden");
+      return;
+    }
     globeRenderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     globeRenderer.setSize(w, h);
 
@@ -130,7 +148,7 @@
     light.position.set(5, 3, 5);
     globeScene.add(light);
 
-    const texture = new THREE.TextureLoader().load("vendor/earth.jpg");
+    const texture = new THREE.TextureLoader().load(window.EARTH_TEXTURE || "vendor/earth.jpg");
     if (THREE.SRGBColorSpace) texture.colorSpace = THREE.SRGBColorSpace;
 
     globeSphere = new THREE.Mesh(
@@ -187,10 +205,7 @@
     $("globe").classList.add("hidden");
   }
 
-  map.on("zoomend", () => {
-    if (map.getZoom() <= 3) showGlobe();
-    else hideGlobe();
-  });
+
 
   /* ---------- routes ---------- */
 
@@ -250,6 +265,39 @@
     map.fitBounds(L.latLngBounds(coords), { padding: [70, 70], animate: true, duration: 0.8 });
   }
 
+  function getRecent() {
+    try { return JSON.parse(localStorage.getItem("recentMaps") || "[]"); } catch (e) { return []; }
+  }
+
+  function addRecent(name, lat, lng) {
+    const list = getRecent().filter((r) => Math.abs(r.lat - lat) > 0.00001 || Math.abs(r.lng - lng) > 0.00001);
+    list.unshift({ name, lat, lng });
+    try { localStorage.setItem("recentMaps", JSON.stringify(list.slice(0, 6))); } catch (e) {}
+  }
+
+  function renderRecent() {
+    const box = $("recent");
+    box.innerHTML = "";
+    const list = getRecent();
+    if (!list.length) return;
+
+    const title = document.createElement("div");
+    title.className = "recentTitle";
+    title.textContent = "Recent searches";
+    box.appendChild(title);
+
+    list.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.className = "recentRow";
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      const span = document.createElement("span");
+      span.textContent = item.name + " \u00b7 " + item.lat.toFixed(3) + ", " + item.lng.toFixed(3);
+      btn.appendChild(span);
+      btn.addEventListener("click", () => pickDestination([item.lat, item.lng], item.name));
+      box.appendChild(btn);
+    });
+  }
+
   function renderRoutes(name) {
     const alts = $("alts");
     alts.innerHTML = "";
@@ -277,25 +325,23 @@
     $("destName").textContent = name;
     $("destSub").textContent = formatMin(route.duration) + " \u00b7 " + formatMi(route.distance) +
       (route.offline ? " \u00b7 offline estimate" : "");
-    $("emptyState").classList.add("hidden");
     $("routeState").classList.remove("hidden");
-    $("sheet").classList.remove("collapsed");
+    $("sheet").classList.remove("hidden", "collapsed");
   }
 
   async function fetchRoutes(latlng, name) {
-    $("emptyState").innerHTML = '<b>Finding the fastest route\u2026</b><span>Calculating on the map</span>';
-    $("emptyState").classList.remove("hidden");
     $("routeState").classList.add("hidden");
+    $("sheet").classList.add("hidden");
 
     let list = [];
 
     if (navigator.onLine) {
       try {
         const origin = L.latLng(start);
-        const url = "https://router.project-osrm.org/route/v1/driving/" +
+        const url = "https://router.project-osrm.org/route/v1/" + mode + "/" +
           origin.lng.toFixed(6) + "," + origin.lat.toFixed(6) + ";" +
           latlng[1].toFixed(6) + "," + latlng[0].toFixed(6) +
-          "?alternatives=true&overview=full&geometries=geojson&steps=true";
+          "?alternatives=true&overview=full&geometries=geojson&steps=true&annotations=speed";
         const res = await fetch(url);
         const data = await res.json();
         if (data.routes && data.routes.length) list = data.routes;
@@ -317,8 +363,11 @@
 
   async function pickDestination(latlng, name) {
     closeSearchSheet();
+    hideGlobe();
     $("searchText").textContent = name;
     setDest(latlng);
+    addRecent(name, latlng[0], latlng[1]);
+    lastDest = { latlng, name };
 
     if (!start) {
       try {
@@ -373,6 +422,7 @@
   async function searchPlaces(query) {
     const box = $("results");
     box.innerHTML = "";
+    $("recent").innerHTML = "";
 
     const trimmed = query.trim();
     if (!trimmed) return;
@@ -532,34 +582,57 @@
     return coords[coords.length - 1];
   }
 
-  function stepNav() {
+  function nearestFraction(latlng) {
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < nav.coords.length; i++) {
+      const d = map.distance(latlng, nav.coords[i]);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return nav.coords.length <= 1 ? 0 : best / (nav.coords.length - 1);
+  }
+
+  function updateNav(c) {
     if (!nav) return;
 
-    const t = Math.min(1, (performance.now() - nav.started) / nav.duration);
-    const p = pointAt(nav.coords, nav.segs, nav.total * t);
-    navMarker.setLatLng(p);
-    map.panTo(p, { animate: false, noMoveStart: true });
+    const latlng = [c.latitude, c.longitude];
+    nav.lastFix = Date.now();
+    navMarker.setLatLng(latlng);
+    map.panTo(latlng, { animate: false, noMoveStart: true });
 
-    const remaining = 1 - t;
+    const progress = nearestFraction(latlng);
+    nav.progress = progress;
+    const remaining = Math.max(0, 1 - progress);
     const seconds = nav.route.duration + (nav.extra || 0);
-    $("navEta").textContent = t >= 1 ? "Arrived" : formatMin(seconds * remaining);
+    $("navEta").textContent = remaining <= 0.01 ? "Arrived" : formatMin(seconds * remaining);
     $("navMiles").textContent = formatMi(nav.route.distance * remaining);
 
-    if (nav.steps && nav.stepIndex < nav.steps.length &&
-        nav.total * t >= nav.stepCum[nav.stepIndex - 1]) {
-      speak(stepText(nav.steps[nav.stepIndex]));
+    if (c.speed != null && !isNaN(c.speed)) setSpeed(c.speed * 2.23694);
+
+    const travelled = nav.route.distance * progress;
+
+    if (nav.speeds && nav.speeds.length) {
+      const index = Math.min(nav.speeds.length - 1, Math.round(progress * (nav.speeds.length - 1)));
+      const kmh = nav.speeds[index];
+      if (typeof kmh === "number" && kmh >= 25) {
+        $("speedLimit").textContent = Math.round((kmh * 0.621371) / 5) * 5;
+        $("speedSign").classList.remove("hidden");
+      }
+    }
+
+    while (nav.stepIndex < nav.steps.length && travelled >= nav.stepCum[nav.stepIndex - 1]) {
+      const step = nav.steps[nav.stepIndex];
+      say(voiceStep(step, 0));
       nav.stepIndex++;
     }
 
-    if (t >= 1) {
-      $("navCancel").textContent = "Done";
-      if (!nav.arrived) {
-        nav.arrived = true;
-        speak("You have arrived at your destination");
-      }
-      return;
+    updateNextBanner();
+
+    if (progress >= 0.995 && !nav.arrived) {
+      nav.arrived = true;
+      speak("You have arrived at your destination");
+      $("navEta").textContent = "Arrived";
     }
-    requestAnimationFrame(stepNav);
   }
 
   function speak(text) {
@@ -569,7 +642,7 @@
     const best = voices.find((v) => /samantha|aria|jenny|google us english/i.test(v.name)) ||
       voices.find((v) => (v.lang || "").toLowerCase().indexOf("en") === 0);
     if (best) utterance.voice = best;
-    utterance.rate = 1;
+    utterance.rate = 0.95;
     utterance.pitch = 1;
     utterance.volume = 1;
     window.speechSynthesis.cancel();
@@ -596,6 +669,35 @@
     $("speedValue").textContent = Math.round(Math.max(0, value));
   }
 
+  function shortDistance(meters) {
+    const feet = meters * 3.28084;
+    if (feet < 1000) return Math.max(50, Math.round(feet / 50) * 50) + " ft";
+    return (meters / 1609.34).toFixed(1) + " mi";
+  }
+
+  function say(text) {
+    speak(text);
+  }
+
+  function voiceStep(step, meters) {
+    return (meters > 0 ? voiceDistance(meters) + ", " : "") + stepText(step);
+  }
+
+  function voiceDistance(meters) {
+    const feet = meters * 3.28084;
+    if (feet < 900) return "In " + Math.max(50, Math.round(feet / 50) * 50) + " feet";
+    return "In " + (meters / 1609.34).toFixed(1) + " miles";
+  }
+
+  function updateNextBanner() {
+    if (!nav || !nav.steps.length) return;
+    const index = Math.min(nav.stepIndex, nav.steps.length - 1);
+    const remaining = Math.max(0, nav.stepCum[index - 1] - nav.route.distance * nav.progress);
+    const text = stepText(nav.steps[index]);
+    $("nextText").textContent = text + (remaining > 5 ? " in " + shortDistance(remaining) : "");
+    $("nextBanner").classList.remove("hidden");
+  }
+
   function showNavUi() {
     $("maps").classList.add("ui");
     clearTimeout(showNavUi.timer);
@@ -609,123 +711,93 @@
 
     const route = routes[selected];
     const coords = route.geometry.coordinates.map((c) => [c[1], c[0]]);
-    let total = 0;
-    const segs = [];
+    nav = {
+      route, coords, steps: [], stepCum: [], stepIndex: 1, extra: 0,
+      arrived: false, lastFix: 0, watch: null, progress: 0, limit: null
+    };
 
-    for (let i = 0; i < coords.length - 1; i++) {
-      const d = map.distance(coords[i], coords[i + 1]);
-      segs.push(d);
-      total += d;
-    }
-
-    nav = { coords, segs, total, started: performance.now(), duration: 22000, route, extra: 0 };
-
-    const steps = [];
     (route.legs || []).forEach((leg) => {
-      (leg.steps || []).forEach((step) => steps.push(step));
+      (leg.steps || []).forEach((step) => nav.steps.push(step));
     });
-    nav.steps = steps;
-    nav.stepIndex = 1;
-    nav.stepCum = [];
+
     let accDist = 0;
-    steps.forEach((step) => {
+    nav.steps.forEach((step) => {
       accDist += step.distance || 0;
       nav.stepCum.push(accDist);
     });
 
-    const limitChoices = [25, 30, 35, 40];
-    let hash = 0;
-    for (let i = 0; i < $("destName").textContent.length; i++) hash += $("destName").textContent.charCodeAt(i);
-    nav.limit = limitChoices[hash % limitChoices.length];
-
-    $("speedLimit").textContent = nav.limit;
-    $("speedSign").classList.remove("hidden");
-    $("maps").classList.add("navigating");
-    $("maps").classList.remove("ui");
-
-    if (speedOn) {
-      $("speedo").classList.remove("hidden");
-      nav.realSpeed = false;
-
-      if (navigator.geolocation) {
-        nav.watch = navigator.geolocation.watchPosition(
-          (pos) => {
-            if (pos.coords.speed != null && !isNaN(pos.coords.speed)) {
-              nav.realSpeed = true;
-              setSpeed(pos.coords.speed * 2.23694);
-            }
-          },
-          () => {},
-          { enableHighAccuracy: true, maximumAge: 1000 }
-        );
-      }
-
-      nav.speedTimer = setInterval(() => {
-        if (!nav) return;
-        if (!nav.realSpeed) setSpeed(nav.limit + Math.sin(performance.now() / 2500) * 5 - 2);
-      }, 1200);
+    let limit = null;
+    const annotation = route.legs && route.legs[0] && route.legs[0].annotation;
+    nav.speeds = (annotation && annotation.speed) || [];
+    const values = nav.speeds.filter((v) => typeof v === "number" && v >= 25).sort((a, b) => a - b);
+    if (values.length) {
+      limit = Math.round((values[Math.floor(values.length / 2)] * 0.621371) / 5) * 5;
     }
 
-    setTimeout(() => {
-      if (!nav) return;
-      $("warningText").textContent = "No parking";
-      $("warningSign").classList.remove("hidden");
-    }, 5000);
+    if (limit) {
+      $("speedLimit").textContent = limit;
+      $("speedSign").classList.remove("hidden");
+    } else {
+      $("speedSign").classList.add("hidden");
+    }
+    nav.limit = limit;
 
-    if (steps.length) speak(stepText(steps[0]));
+    $("maps").classList.add("navigating");
+    $("maps").classList.remove("ui");
+    $("speedValue").textContent = "0";
+    if (speedOn) $("speedo").classList.remove("hidden");
 
     if (navMarker) navMarker.remove();
-    navMarker = L.circleMarker(coords[0], {
+    navMarker = L.circleMarker(start ? L.latLng(start) : coords[0], {
       radius: 9, color: "#ffffff", weight: 3, fillColor: "#1a73e8", fillOpacity: 1
     }).addTo(map);
 
     $("sheet").classList.add("hidden");
     $("navBanner").classList.remove("hidden");
     $("navCancel").textContent = "Cancel";
-    map.flyTo(coords[0], 16, { duration: 0.9 });
-    requestAnimationFrame(stepNav);
+    map.flyTo(start ? L.latLng(start) : coords[0], 16, { duration: 0.9 });
 
-    navTimers.forEach(clearTimeout);
-    navTimers = [];
+    if (nav.steps.length) {
+      say("Starting navigation. " + stepText(nav.steps[0]));
+      $("nextText").textContent = stepText(nav.steps[0]);
+      $("nextBanner").classList.remove("hidden");
+    }
 
-    if (alertsOn) {
-      navTimers.push(setTimeout(() => { if (nav) trafficEvent(); }, 4500));
-      navTimers.push(setTimeout(() => {
-        if (!nav) return;
-        siren();
-        showAlert("Police detected nearby", "#123a8c");
-      }, 10000));
-      navTimers.push(setTimeout(() => {
-        if (!nav) return;
-        crashSound();
-        showAlert("Car crash ahead", "#b3261e");
-      }, 16000));
+    if (navigator.geolocation) {
+      nav.watch = navigator.geolocation.watchPosition(
+        (pos) => updateNav(pos.coords),
+        () => showAlert("Waiting for GPS\u2026", "#123a8c"),
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+      );
+
+      nav.waitTimer = setTimeout(() => {
+        if (nav && !nav.lastFix) showAlert("Waiting for GPS\u2026", "#123a8c");
+      }, 8000);
+    } else {
+      showAlert("GPS unavailable", "#123a8c");
     }
   }
 
   function stopNav() {
     if (!nav) return;
+
     const running = nav;
     nav = null;
-    navTimers.forEach(clearTimeout);
-    navTimers = [];
-    if (running) {
-      if (running.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(running.watch);
-      clearInterval(running.speedTimer);
-    }
+    clearTimeout(running.waitTimer);
+    if (running.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(running.watch);
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+
     if (navMarker) { navMarker.remove(); navMarker = null; }
-    if (trafficLayer) { trafficLayer.remove(); trafficLayer = null; }
     $("alert").classList.add("hidden");
     $("navBanner").classList.add("hidden");
+    $("nextBanner").classList.add("hidden");
     $("speedSign").classList.add("hidden");
     $("warningSign").classList.add("hidden");
     $("speedo").classList.add("hidden");
     $("maps").classList.remove("navigating", "ui");
-    $("sheet").classList.remove("hidden");
+    if (routes.length) $("sheet").classList.remove("hidden");
     fitRoutes();
   }
-
   /* ---------- sheets ---------- */
 
   function closeSearchSheet() {
@@ -775,6 +847,8 @@
 
   $("searchBtn").addEventListener("click", () => {
     $("searchSheet").classList.remove("hidden");
+    $("results").innerHTML = "";
+    renderRecent();
     setTimeout(() => $("searchInput").focus(), 60);
   });
 
@@ -786,6 +860,14 @@
   $("searchInput").addEventListener("input", (event) => {
     const value = event.target.value;
     clearTimeout(searchTimer);
+
+    if (!value.trim()) {
+      $("results").innerHTML = "";
+      renderRecent();
+      return;
+    }
+
+    $("recent").innerHTML = "";
     searchTimer = setTimeout(() => searchPlaces(value), 350);
   });
 
@@ -796,12 +878,30 @@
     }
   });
 
+  document.querySelectorAll(".mode").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      mode = btn.dataset.mode;
+      document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+      save("travelMode", mode);
+      if (lastDest && start) fetchRoutes(lastDest.latlng, lastDest.name);
+    });
+  });
+
+  document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+
   $("go").addEventListener("click", startNav);
   $("navCancel").addEventListener("click", stopNav);
 
   $("zoomIn").addEventListener("click", () => map.zoomIn());
   $("zoomOut").addEventListener("click", () => map.zoomOut());
-  $("world").addEventListener("click", () => map.flyTo([20, 0], 2, { duration: 1.6 }));
+  $("world").addEventListener("click", () => {
+    if ($("globe").classList.contains("hidden")) {
+      showGlobe();
+    } else {
+      hideGlobe();
+      map.setZoom(4, { animate: true });
+    }
+  });
   $("locate").addEventListener("click", () => {
     if (start) map.flyTo(start, 15, { duration: 1.2 });
     else askLocation();
@@ -823,11 +923,6 @@
     btn.addEventListener("click", () => applyStyle(btn.dataset.style));
   });
 
-  $("toggleAlerts").addEventListener("click", () => {
-    alertsOn = !alertsOn;
-    $("toggleAlerts").classList.toggle("on", alertsOn);
-    save("alerts", alertsOn ? "1" : "0");
-  });
 
   $("toggleSpeed").addEventListener("click", () => {
     speedOn = !speedOn;
@@ -902,7 +997,7 @@
 
   /* start */
   applyStyle(styleName);
-  $("toggleAlerts").classList.toggle("on", alertsOn);
+
   $("toggleCoords").classList.toggle("on", coordsOn);
   $("toggleSpeed").classList.toggle("on", speedOn);
   askLocation();
