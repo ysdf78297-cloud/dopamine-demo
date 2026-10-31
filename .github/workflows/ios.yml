@@ -30,6 +30,7 @@ jobs:
           cp sileo/index.html sileo/styles.css sileo/app.js sileo/icon-180.png sileo/icon-192.png ios/Sileo/www/
           cp zebra/index.html zebra/styles.css zebra/app.js zebra/icon-180.png zebra/icon-192.png ios/Zebra/www/
           cp maps/index.html maps/styles.css maps/app.js maps/icon-180.png maps/icon-192.png ios/MapsV2/www/
+          cp -R maps/vendor ios/MapsV2/www/
 
       - name: Install XcodeGen
         run: brew install xcodegen

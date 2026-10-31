@@ -10,48 +10,44 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Maps V2">
 <link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="stylesheet" href="./vendor/leaflet.css">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 
 <div id="maps">
-  <div id="mapWrap">
-    <svg id="map" viewBox="0 0 1000 1600" preserveAspectRatio="xMidYMid slice">
-      <g id="base"></g>
-      <g id="roads"></g>
-      <g id="routes"></g>
-      <g id="markers"></g>
-      <g id="labels"></g>
-    </svg>
+  <div id="map"></div>
 
-    <div id="topbar">
-      <button id="searchBtn" class="search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-        <span id="searchText">Search places</span>
-      </button>
-    </div>
+  <div id="topbar">
+    <button id="searchBtn" class="search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <span id="searchText">Search places</span>
+    </button>
+  </div>
 
-    <div id="netChip"><span class="netdot"></span><span id="netText">Online</span></div>
+  <div id="netChip"><span class="netdot"></span><span id="netText">Online</span></div>
 
-    <div id="mapControls">
-      <button id="zoomIn" aria-label="Zoom in">+</button>
-      <button id="zoomOut" aria-label="Zoom out">&minus;</button>
-      <button id="locate" aria-label="My location">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2.5"/></svg>
-      </button>
-    </div>
+  <div id="mapControls">
+    <button id="zoomIn" aria-label="Zoom in">+</button>
+    <button id="zoomOut" aria-label="Zoom out">&minus;</button>
+    <button id="world" aria-label="World view">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+    </button>
+    <button id="locate" aria-label="My location">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2.5"/></svg>
+    </button>
+  </div>
 
-    <div id="navBanner" class="hidden">
-      <div class="navInfo"><b id="navEta">-- min</b><span id="navMiles">-- mi</span></div>
-      <button id="navCancel" class="navCancel">Cancel</button>
-    </div>
+  <div id="navBanner" class="hidden">
+    <div class="navInfo"><b id="navEta">-- min</b><span id="navMiles">-- mi</span></div>
+    <button id="navCancel" class="navCancel">Cancel</button>
   </div>
 
   <div id="sheet" class="sheet">
     <div class="grab"></div>
     <div id="emptyState">
-      <b>Offline maps</b>
-      <span>Tap the search bar to pick a destination. Routes are calculated on this device.</span>
+      <b>Maps V2</b>
+      <span>Search for a place to get the fastest route. Drag the map to explore the world.</span>
     </div>
 
     <div id="routeState" class="hidden">
@@ -59,7 +55,7 @@
         <div class="destIcon">
           <svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
         </div>
-        <div class="destText"><b id="destName">Destination</b><span id="destSub">Offline map</span></div>
+        <div class="destText"><b id="destName">Destination</b><span id="destSub">Route</span></div>
         <button id="go" class="go">Go</button>
       </div>
       <div id="alts" class="alts"></div>
@@ -90,6 +86,7 @@
   </div>
 </div>
 
+<script src="./vendor/leaflet.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
