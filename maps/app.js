@@ -32,7 +32,7 @@
   const map = L.map("map", { zoomControl: false, worldCopyJump: true, attributionControl: true }).setView([20, 0], 2);
   map.attributionControl.setPrefix(false);
 
-  let styleName = load("mapStyle", "satellite");
+  let styleName = load("mapStyle2", "colored");
   if (!STYLES[styleName]) styleName = "colored";
   let tileLayer = null;
 
@@ -45,13 +45,11 @@
       maxZoom: style.max,
       attribution: style.attribution,
       subdomains: "abcd",
-      updateWhenIdle: false,
-      updateWhenZooming: false,
-      keepBuffer: 4,
+      keepBuffer: 2,
       fadeAnimation: true
     }).addTo(map);
     map.getContainer().classList.toggle("mono", name === "mono");
-    save("mapStyle", name);
+    save("mapStyle2", name);
 
     document.querySelectorAll(".opt").forEach((b) => {
       b.classList.toggle("active", b.dataset.style === name);
@@ -631,13 +629,40 @@
   }
 
   function nearestFraction(latlng) {
-    let best = 0;
-    let bestD = Infinity;
-    for (let i = 0; i < nav.coords.length; i++) {
-      const d = map.distance(latlng, nav.coords[i]);
-      if (d < bestD) { bestD = d; best = i; }
+    const coords = nav.coords;
+    if (coords.length < 2) return 0;
+
+    let total = 0;
+    const segs = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = map.distance(coords[i], coords[i + 1]);
+      segs.push(d);
+      total += d;
     }
-    return nav.coords.length <= 1 ? 0 : best / (nav.coords.length - 1);
+
+    const p = L.latLng(latlng);
+    let best = Infinity;
+    let fraction = 0;
+    let acc = 0;
+
+    for (let i = 0; i < coords.length - 1; i++) {
+      const a = L.latLng(coords[i]);
+      const b = L.latLng(coords[i + 1]);
+      const ax = a.lng, ay = a.lat, bx = b.lng, by = b.lat;
+      const dx = bx - ax, dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      let t = len2 === 0 ? 0 : ((p.lng - ax) * dx + (p.lat - ay) * dy) / len2;
+      t = Math.max(0, Math.min(1, t));
+      const proj = [ay + dy * t, ax + dx * t];
+      const d = map.distance(p, proj);
+      if (d < best) {
+        best = d;
+        fraction = total === 0 ? 0 : (acc + segs[i] * t) / total;
+      }
+      acc += segs[i];
+    }
+
+    return fraction;
   }
 
   function updateNav(c) {
@@ -647,18 +672,22 @@
     nav.lastFix = Date.now();
     navMarker.setLatLng(latlng);
 
-    if (!nav.following) {
-      map.setView(latlng, 18, { animate: false });
+    if (!nav.lastCam || map.distance(latlng, nav.lastCam) > 12) {
+      if (!nav.following) map.setView(latlng, 18, { animate: false });
+      else map.panTo(latlng, { animate: false, noMoveStart: true });
+      nav.lastCam = latlng;
       nav.following = true;
-    } else {
-      map.panTo(latlng, { animate: false, noMoveStart: true });
     }
 
     const progress = nearestFraction(latlng);
     nav.progress = progress;
+
+    const destLatLng = destMarker ? destMarker.getLatLng() : L.latLng(nav.coords[nav.coords.length - 1]);
+    const distToDest = map.distance(latlng, destLatLng);
+
     const remaining = Math.max(0, 1 - progress);
     const seconds = nav.route.duration + (nav.extra || 0);
-    $("navEta").textContent = remaining <= 0.01 ? "Arrived" : formatMin(seconds * remaining);
+    $("navEta").textContent = distToDest < 45 ? "Arrived" : formatMin(seconds * remaining);
     $("navMiles").textContent = formatMi(nav.route.distance * remaining);
 
     if (c.speed != null && !isNaN(c.speed)) setSpeed(c.speed * 2.23694);
@@ -682,10 +711,11 @@
 
     updateNextBanner();
 
-    if (progress >= 0.995 && !nav.arrived) {
+    if (distToDest < 45 && !nav.arrived) {
       nav.arrived = true;
       speak("You have arrived at your destination");
       $("navEta").textContent = "Arrived";
+      $("nextBanner").classList.add("hidden");
     }
   }
 
@@ -699,6 +729,7 @@
     utterance.rate = 0.95;
     utterance.pitch = 1;
     utterance.volume = 1;
+    window.speechSynthesis.resume();
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   }
@@ -786,7 +817,6 @@
       if (nav.lastFix && Date.now() - nav.lastFix > 3000 && nav.following) {
         nav.following = false;
         fitRoutes();
-        map.setZoom(14, { animate: true });
       }
     }, 1000);
 
